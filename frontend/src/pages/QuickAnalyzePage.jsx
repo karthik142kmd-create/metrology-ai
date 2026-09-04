@@ -151,17 +151,135 @@ export default function QuickAnalyzePage({ user: propUser }) {
   const fileInputRef = useRef(null)
   const cameraInputRef = useRef(null)
 
-  // Generate realistic Legal Metrology PCR 2011 audit
+  // Generate calibrated Legal Metrology PCR 2011 audit (for samples or offline review)
   const buildAuditReport = (file) => {
     const filename = (file?.name || 'Package_Label.jpg').toLowerCase()
     const isRice = filename.includes('rice')
-    const isOil = filename.includes('oil') || filename.includes('product')
-    const isFail = isOil || filename.includes('fail') || filename.includes('violat')
+    const isOil = filename.includes('oil') && !filename.includes('defective')
+    const isDefective = filename.includes('defective') || filename.includes('fail') || filename.includes('violat')
+    const isKnownSample = isRice || isOil || isDefective
 
     const cleanTitle = file?.name
       ? file.name.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' ')
       : 'Packaged Commodity'
 
+    // If it's an unverified custom user upload (backend offline / unreachable):
+    // All mandatory fields are marked as FAIL/UNVERIFIED (0% score) so users are never misled with a fake 100%!
+    if (!isKnownSample) {
+      const unverifiedRules = [
+        {
+          field: 'mrp',
+          rule_name: 'Maximum Retail Price (MRP)',
+          legal_reference: 'Rule 6(1)(e), PCR 2011',
+          description: 'Mandatory declaration inclusive of all taxes with currency symbol (₹ or Rs.)',
+          penalty_info: 'Fine up to ₹25,000 for first offence under Section 36(1) of LM Act 2009',
+          status: 'FAIL',
+          extracted_value: 'Unverified (Backend Offline)',
+          discrepancy: 'Backend OCR server was unreachable. Declaration could not be extracted.',
+          points: 15,
+          mandatory: true
+        },
+        {
+          field: 'net_quantity',
+          rule_name: 'Net Quantity / Weight Declaration',
+          legal_reference: 'Rule 6(1)(c) & Second Schedule',
+          description: 'Net quantity in standard metric units (g, kg, ml, l) with mandatory lowercase casing',
+          penalty_info: 'Fine up to ₹20,000 under Section 30 of LM Act 2009',
+          status: 'FAIL',
+          extracted_value: 'Unverified (Backend Offline)',
+          discrepancy: 'Net quantity could not be verified automatically.',
+          points: 15,
+          mandatory: true
+        },
+        {
+          field: 'manufacturer',
+          rule_name: 'Manufacturer / Packer Details',
+          legal_reference: 'Rule 6(1)(a), PCR 2011',
+          description: 'Prominently printed name of the registered manufacturer, packer or importer',
+          penalty_info: 'Statutory prosecution notice under Section 36',
+          status: 'FAIL',
+          extracted_value: 'Unverified (Backend Offline)',
+          discrepancy: 'Manufacturer name could not be verified.',
+          points: 15,
+          mandatory: true
+        },
+        {
+          field: 'address',
+          rule_name: 'Complete Postal Address',
+          legal_reference: 'Rule 6(1)(a), PCR 2011',
+          description: 'Complete postal address with City, State, and PIN code for consumer access',
+          penalty_info: 'Procedural violation notice with compounding penalty up to ₹10,000',
+          status: 'FAIL',
+          extracted_value: 'Unverified (Backend Offline)',
+          discrepancy: 'Postal address with PIN code could not be verified.',
+          points: 15,
+          mandatory: true
+        },
+        {
+          field: 'date',
+          rule_name: 'Date of Manufacture / Packing',
+          legal_reference: 'Rule 6(1)(d), PCR 2011',
+          description: 'Month and Year of manufacture or packaging (e.g. 08/2026 or Aug 2026)',
+          penalty_info: 'Sale prohibited post-expiry; packaging penalty up to ₹25,000',
+          status: 'FAIL',
+          extracted_value: 'Unverified (Backend Offline)',
+          discrepancy: 'Date of manufacture/packaging could not be verified.',
+          points: 15,
+          mandatory: true
+        },
+        {
+          field: 'consumer_care',
+          rule_name: 'Consumer Care Helpline & Email',
+          legal_reference: 'Rule 6(1)(f), PCR 2011',
+          description: 'Designated telephone helpline and email address for consumer grievances',
+          penalty_info: 'Fine up to ₹25,000 under Rule 32 of LM(PC) Rules',
+          status: 'FAIL',
+          extracted_value: 'Unverified (Backend Offline)',
+          discrepancy: 'Consumer helpline & email could not be verified.',
+          points: 15,
+          mandatory: true
+        },
+        {
+          field: 'country_of_origin',
+          rule_name: 'Country of Origin Declaration',
+          legal_reference: 'Rule 6(1)(a) Amendment 2017',
+          description: 'Prominent country of origin on pre-packaged goods',
+          penalty_info: 'Fine up to ₹50,000 and customs regulatory hold',
+          status: 'FAIL',
+          extracted_value: 'Unverified (Backend Offline)',
+          discrepancy: 'Country of origin could not be verified.',
+          points: 10,
+          mandatory: true
+        }
+      ]
+
+      return {
+        product_name: cleanTitle,
+        category: 'Packaged Goods',
+        compliance_rate: 0,
+        compliance_score: 0,
+        compliance_result: 'FAIL',
+        summary: {
+          total_rules: unverifiedRules.length,
+          passed_rules: 0,
+          failed_rules: unverifiedRules.length,
+          review_rules: 0,
+          earned_points: 0,
+          total_points: 100
+        },
+        rule_results: unverifiedRules,
+        declarations: {},
+        ocr_text: '',
+        ai_assessment: {
+          risk_level: 'HIGH',
+          risk_score: 95,
+          action_required: 'Automated OCR analysis server was unreachable. Reconnect and re-analyze to verify packaging declarations under Legal Metrology Act 2009.',
+          statutory_summary: 'Preliminary Offline Audit: Automated OCR server was unreachable. 0 of 7 declarations verified. Compliance score: 0%. Please retry with a live connection.'
+        }
+      }
+    }
+
+    // Calibrated demo sample data
     const rules = [
       {
         field: 'mrp',
@@ -169,8 +287,9 @@ export default function QuickAnalyzePage({ user: propUser }) {
         legal_reference: 'Rule 6(1)(e), PCR 2011',
         description: 'Mandatory declaration inclusive of all taxes with currency symbol (₹ or Rs.)',
         penalty_info: 'Fine up to ₹25,000 for first offence under Section 36(1) of LM Act 2009',
-        status: 'PASS',
-        extracted_value: isRice ? '₹650.00 (Incl. of all taxes)' : isOil ? '₹180.00' : '₹249.00 (Incl. of all taxes)',
+        status: isDefective ? 'FAIL' : 'PASS',
+        extracted_value: isRice ? '₹650.00 (Incl. of all taxes)' : isOil ? '₹180.00 (Incl. of all taxes)' : '₹45 (Missing tax notation)',
+        discrepancy: isDefective ? 'Missing mandatory "inclusive of all taxes" declaration' : null,
         points: 15,
         mandatory: true
       },
@@ -180,8 +299,9 @@ export default function QuickAnalyzePage({ user: propUser }) {
         legal_reference: 'Rule 6(1)(c) & Second Schedule',
         description: 'Net quantity in standard metric units (g, kg, ml, l) with mandatory lowercase casing',
         penalty_info: 'Fine up to ₹20,000 under Section 30 of LM Act 2009',
-        status: 'PASS',
-        extracted_value: isRice ? '5 kg' : isOil ? '1 l' : '500 g',
+        status: isDefective ? 'FAIL' : 'PASS',
+        extracted_value: isRice ? '5 kg' : isOil ? '1 L' : '200 GMS (Non-standard symbol)',
+        discrepancy: isDefective ? 'Non-standard abbreviation "GMS" violates metric rule (must be "g")' : null,
         points: 15,
         mandatory: true
       },
@@ -192,7 +312,7 @@ export default function QuickAnalyzePage({ user: propUser }) {
         description: 'Prominently printed name of the registered manufacturer, packer or importer',
         penalty_info: 'Statutory prosecution notice under Section 36',
         status: 'PASS',
-        extracted_value: isRice ? 'ABC Foods Pvt Ltd' : isOil ? 'XYZ Agro Oils Ltd' : 'Heritage Foods Ltd',
+        extracted_value: isRice ? 'ABC Foods Pvt Ltd' : isOil ? 'Sun Agro Oils Ltd' : 'Snacko Foods Ltd',
         points: 15,
         mandatory: true
       },
@@ -202,9 +322,9 @@ export default function QuickAnalyzePage({ user: propUser }) {
         legal_reference: 'Rule 6(1)(a), PCR 2011',
         description: 'Complete postal address with City, State, and PIN code for consumer access',
         penalty_info: 'Procedural violation notice with compounding penalty up to ₹10,000',
-        status: isFail ? 'FAIL' : 'PASS',
-        extracted_value: isFail ? 'Industrial Area, Bangalore (Missing State & PIN)' : 'Plot 42, Sector 5, Hyderabad, Telangana - 500081',
-        discrepancy: isFail ? 'Incomplete address: State and 6-digit PIN code missing on packaging' : null,
+        status: isDefective ? 'FAIL' : 'PASS',
+        extracted_value: isDefective ? 'Industrial Area, Bangalore (Missing State & PIN)' : 'Plot 42, Sector 5, Hyderabad, Telangana - 500081',
+        discrepancy: isDefective ? 'Incomplete address: State and 6-digit PIN code missing on packaging' : null,
         points: 15,
         mandatory: true
       },
@@ -225,9 +345,9 @@ export default function QuickAnalyzePage({ user: propUser }) {
         legal_reference: 'Rule 6(1)(f), PCR 2011',
         description: 'Designated telephone helpline and email address for consumer grievances',
         penalty_info: 'Fine up to ₹25,000 under Rule 32 of LM(PC) Rules',
-        status: isFail ? 'FAIL' : 'PASS',
-        extracted_value: isFail ? 'Not Detected on Packaging' : '1800-123-4567 / care@brand.com',
-        discrepancy: isFail ? 'Mandatory customer care telephone helpline and email missing' : null,
+        status: isDefective ? 'FAIL' : 'PASS',
+        extracted_value: isDefective ? 'Not Detected on Packaging' : '1800-123-4567 / care@brand.com',
+        discrepancy: isDefective ? 'Mandatory customer care telephone helpline and email missing' : null,
         points: 15,
         mandatory: true
       },
@@ -267,19 +387,23 @@ export default function QuickAnalyzePage({ user: propUser }) {
       rule_results: rules,
       declarations: {
         product_name: { value: cleanTitle, confidence: 0.98 },
-        mrp: { value: isRice ? '₹650' : '₹180', confidence: 0.99 },
-        net_quantity: { value: isRice ? '5kg' : '1L', confidence: 0.99 },
-        manufacturer: { value: isRice ? 'ABC Foods Pvt Ltd' : 'XYZ Oils Ltd', confidence: 0.95 },
+        mrp: { value: isRice ? '₹650' : isOil ? '₹180' : '₹45', confidence: 0.95 },
+        net_quantity: { value: isRice ? '5kg' : isOil ? '1L' : '200g', confidence: 0.95 },
+        manufacturer: { value: isRice ? 'ABC Foods Pvt Ltd' : isOil ? 'Sun Agro Oils Ltd' : 'Snacko Foods Ltd', confidence: 0.95 },
         manufacturing_date: { value: '08/2026', confidence: 0.92 },
         country_of_origin: { value: 'India', confidence: 0.97 }
       },
       ocr_text: isRice
         ? 'ABC Premium Rice 5kg Net Qty 5 kg MRP ₹650 (Incl. of all taxes) MFG 08/2026 ABC Foods Pvt Ltd Hyderabad Telangana India Customer Care 1800-123-4567'
-        : 'Pure Vegetable Cooking Oil 1L Net Qty 1 l MRP ₹180 MFG 08/2026 XYZ Oils Ltd Bangalore Made in India',
+        : isOil
+        ? 'Pure Vegetable Cooking Oil 1L Net Qty 1 L MRP ₹180 (Incl. of all taxes) MFG 08/2026 Sun Agro Oils Ltd Bangalore Made in India Customer Care 1800-222-3333'
+        : 'Crunchy Snack 200 GMS Price Rs 45 MFG 08/2026 Snacko Foods Ltd Industrial Area Bangalore Made in India',
       ai_assessment: {
-        risk_level: isFail ? 'HIGH' : 'LOW',
-        risk_score: isFail ? 72 : 12,
-        action_required: isFail ? 'Rectify missing consumer care and postal address before market distribution.' : 'Compliant for retail distribution under Legal Metrology Act 2009.',
+        risk_level: isDefective ? 'HIGH' : 'LOW',
+        risk_score: isDefective ? 75 : 10,
+        action_required: isDefective
+          ? 'Rectify missing customer helpline, tax inclusion, and standard metric unit casing before distribution.'
+          : 'Compliant for retail distribution under Legal Metrology Act 2009.',
         statutory_summary: `Audited 7 mandatory declarations under PCR 2011. Overall Compliance Score: ${rate}%.`
       }
     }
@@ -319,7 +443,7 @@ export default function QuickAnalyzePage({ user: propUser }) {
     }
   }
 
-  // Run Quick Analysis
+  // Run Quick Analysis with real OCR backend
   const handleAnalyze = async (overrideFile = null) => {
     const fileToScan = overrideFile instanceof File ? overrideFile : selectedFile
     if (!fileToScan) {
@@ -330,42 +454,57 @@ export default function QuickAnalyzePage({ user: propUser }) {
     try {
       setAnalyzing(true)
       setError('')
-      setProgressStep('Initializing Tesseract OCR & adaptive label preprocessing...')
+      setProgressStep('Uploading packaging image to Legal Metrology compliance engine...')
 
       const timer1 = setTimeout(() => {
-        setProgressStep('Extracting mandatory Legal Metrology declarations (MRP, Net Qty, Mfg Date)...')
-      }, 1000)
+        setProgressStep('Preprocessing image: Adaptive contrast & noise reduction...')
+      }, 1500)
 
       const timer2 = setTimeout(() => {
-        setProgressStep('Auditing against Government PCR 2011 Rules & calculating compliance rate...')
-      }, 2000)
+        setProgressStep('Running multi-pass Tesseract OCR to read label text...')
+      }, 4000)
 
-      // Try live backend API with 8-second safety timeout
+      const timer3 = setTimeout(() => {
+        setProgressStep('Extracting mandatory declarations (MRP, Net Qty, Mfg Date, Packer)...')
+      }, 8000)
+
+      const timer4 = setTimeout(() => {
+        setProgressStep('Auditing against Government PCR 2011 Rules & calculating compliance rate...')
+      }, 13000)
+
       let scanResult = null
+      const filename = (fileToScan?.name || '').toLowerCase()
+      const isKnownSample = filename.includes('rice') || filename.includes('oil') || filename.includes('defective')
+
       try {
-        const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Backend timeout')), 8500)
-        )
-        const apiPromise = analysisAPI.quickAnalyze(fileToScan, 'General')
-        const res = await Promise.race([apiPromise, timeoutPromise])
+        // Send to live analysis backend with 45-second generous timeout
+        const res = await analysisAPI.quickAnalyze(fileToScan, 'General')
         if (res?.data && res.data.compliance_rate !== undefined) {
           scanResult = res.data
         }
       } catch (backendErr) {
-        console.warn('Backend API slow or unavailable, generating fast local audit:', backendErr)
-        scanResult = buildAuditReport(fileToScan)
+        console.warn('Backend analysis error or timeout:', backendErr)
+        if (isKnownSample) {
+          scanResult = buildAuditReport(fileToScan)
+        } else {
+          setError('Live analysis server took too long or was unreachable. Please verify connection and click "Analyze Image & Check Compliance" to retry.')
+          // For custom upload offline fallback, score is 0% FAIL so users are never misled
+          scanResult = buildAuditReport(fileToScan)
+        }
       }
 
       clearTimeout(timer1)
       clearTimeout(timer2)
+      clearTimeout(timer3)
+      clearTimeout(timer4)
 
-      setResults(scanResult || buildAuditReport(fileToScan))
+      if (scanResult) {
+        setResults(scanResult)
+      }
       setProgressStep('')
     } catch (err) {
       console.error('Analysis error:', err)
-      // Always guarantee the user receives their compliance score!
-      setResults(buildAuditReport(fileToScan))
-      setError('')
+      setError('Analysis failed. Please check your image or network connection.')
     } finally {
       setAnalyzing(false)
       setProgressStep('')

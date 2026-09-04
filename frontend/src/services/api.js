@@ -176,7 +176,7 @@ export const inspectionsAPI = {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
   },
-  scan: (id) => api.post(`/inspections/${id}/scan`),
+  scan: (id) => api.post(`/inspections/${id}/scan`, {}, { timeout: 45000 }),
   update: (id, data) => api.put(`/inspections/${id}`, data),
 }
 
@@ -186,6 +186,7 @@ export const analysisAPI = {
     formData.append('file', file)
     return api.post('/analysis/ocr', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 45000,
     })
   },
   extractDeclarations: (ocrData) =>
@@ -204,6 +205,7 @@ export const analysisAPI = {
     formData.append('category', category)
     return api.post('/analysis/quick-analyze', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 45000,
     })
   },
 }

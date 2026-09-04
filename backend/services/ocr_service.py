@@ -286,9 +286,15 @@ class DemoOCRProvider(OCRProvider):
                 logger.info(f"Returning demo OCR for pattern match: {filename}")
                 return self.SAMPLE_DATA['abc_rice.jpg']
         
-        # Default
-        logger.info(f"Using fallback demo OCR for: {filename}")
-        return self.SAMPLE_DATA['abc_rice.jpg']
+        # For arbitrary user uploads, do NOT inject fake compliant demo text
+        logger.info(f"No demo sample matched for: {filename}, returning empty OCR result")
+        return {
+            'full_text': '',
+            'text_blocks': [],
+            'overall_confidence': 0.0,
+            'image_width': 0,
+            'image_height': 0
+        }
 
 
 class OCRService:
@@ -298,16 +304,21 @@ class OCRService:
     
     @classmethod
     async def extract_text(cls, image_path: str) -> Dict[str, Any]:
-        """Extract text from image with graceful fallback"""
+        """Extract text from image with graceful error handling"""
         if cls._provider is None:
             cls._provider = await cls._get_provider()
         
         try:
             return await cls._provider.extract_text(image_path)
         except Exception as e:
-            logger.warning(f"OCR extraction failed with {type(cls._provider).__name__}: {e}. Falling back to DemoOCRProvider.")
-            fallback = DemoOCRProvider()
-            return await fallback.extract_text(image_path)
+            logger.warning(f"OCR extraction failed with {type(cls._provider).__name__}: {e}. Returning empty OCR result.")
+            return {
+                'full_text': '',
+                'text_blocks': [],
+                'overall_confidence': 0.0,
+                'image_width': 0,
+                'image_height': 0
+            }
     
     @classmethod
     async def _get_provider(cls) -> OCRProvider:

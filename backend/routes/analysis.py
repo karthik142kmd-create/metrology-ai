@@ -208,16 +208,15 @@ async def quick_analyze_image(
         with open(filepath, "wb") as f:
             f.write(contents)
 
-        # 1. Extract OCR text safely with fallback
+        # 1. Extract OCR text safely
         try:
             ocr_result = await OCRService.extract_text(filepath)
         except Exception as ocr_e:
-            logger.warning(f"OCR processing failed or timed out: {ocr_e}, falling back to label parser")
-            clean_name = file.filename.replace('.jpg', '').replace('.png', '').replace('_', ' ')
+            logger.warning(f"OCR processing failed or timed out: {ocr_e}")
             ocr_result = {
-                "full_text": f"Packaged Commodity: {clean_name}. Legal Metrology Declarations: MRP, Net Quantity, Date of Mfg, Packer Details.",
+                "full_text": "",
                 "text_blocks": [],
-                "overall_confidence": 0.88
+                "overall_confidence": 0.0
             }
 
         # 2. Extract structured government declarations

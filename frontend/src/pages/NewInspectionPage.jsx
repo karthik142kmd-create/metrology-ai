@@ -103,23 +103,8 @@ function NewInspectionPage() {
       setScanResults(response.data)
       setStep(4)
     } catch (err) {
-      console.warn('Backend scan delayed or failed, computing instant Legal Metrology scorecard:', err)
-      const fallbackResult = {
-        inspection_id: id,
-        status: 'completed',
-        compliance_score: 87.5,
-        compliance_result: 'PASS',
-        total_rules: 8,
-        passed_rules: 7,
-        failed_rules: 1,
-        review_rules: 0,
-        ai_assessment: {
-          risk_level: 'LOW',
-          summary: 'Package demonstrates mandatory statutory declarations (MRP, Net Quantity, Date of Mfg, Packer Details) under Legal Metrology Rules 2011.'
-        }
-      }
-      setScanResults(fallbackResult)
-      setStep(4)
+      console.error('Backend scan failed or timed out:', err)
+      setError('Packaging compliance scan failed or timed out. Please ensure the backend server is reachable and click "Run Full AI Scan" to retry.')
     } finally {
       setScanning(false)
     }
