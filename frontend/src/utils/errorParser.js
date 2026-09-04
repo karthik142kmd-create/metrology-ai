@@ -14,6 +14,15 @@ export function parseErrorMessage(err, fallback = 'Operation failed') {
   }
 
   const { data, status } = err.response
+
+  // Handle specific HTTP error status codes cleanly
+  if (status === 405) {
+    return 'Authentication service route issue (HTTP 405 Method Not Allowed). Please ensure the backend server is running at http://localhost:8000.'
+  }
+  if (status === 404) {
+    return 'Backend endpoint not found (HTTP 404). Please verify backend is running at http://localhost:8000.'
+  }
+
   if (!data) {
     return `Server responded with status ${status}`
   }
@@ -21,6 +30,9 @@ export function parseErrorMessage(err, fallback = 'Operation failed') {
   const detail = data.detail
   // 1. Plain string error
   if (typeof detail === 'string') {
+    if (detail.toLowerCase().includes('method not allowed')) {
+      return 'Authentication endpoint method error. Please check that the backend is running at http://localhost:8000.'
+    }
     return detail
   }
 

@@ -84,7 +84,9 @@ app.include_router(reports.router, prefix="/api/reports", tags=["Reports"])
 app.include_router(dashboard.router, prefix="/api/dashboard", tags=["Dashboard"])
 
 
-@app.get("/", tags=["Health"])
+@app.get("/", tags=["Health"], operation_id="root_get")
+@app.head("/", include_in_schema=False)
+@app.post("/", include_in_schema=False)
 async def root():
     """Health check endpoint"""
     return {
@@ -95,7 +97,9 @@ async def root():
     }
 
 
-@app.get("/health", tags=["Health"])
+@app.get("/health", tags=["Health"], operation_id="health_check_get")
+@app.head("/health", include_in_schema=False)
+@app.post("/health", include_in_schema=False)
 async def health():
     """Health check for monitoring"""
     return {

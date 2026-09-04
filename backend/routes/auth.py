@@ -17,6 +17,7 @@ router = APIRouter()
 
 
 @router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED, tags=["Auth"])
+@router.post("/register/", response_model=TokenResponse, status_code=status.HTTP_201_CREATED, include_in_schema=False)
 async def register(request: RegisterRequest, db: Session = Depends(get_db)):
     """
     Register a new user account for packaged commodity compliance scanning
@@ -72,7 +73,20 @@ async def register(request: RegisterRequest, db: Session = Depends(get_db)):
     }
 
 
+@router.get("/register", tags=["Auth"])
+@router.get("/register/", include_in_schema=False)
+async def register_info():
+    """Information for register endpoint"""
+    return {
+        "status": "active",
+        "endpoint": "/api/auth/register",
+        "method_expected": "POST",
+        "message": "Auth register endpoint is active. Please submit a POST request with full_name, email, password, and role."
+    }
+
+
 @router.post("/login", response_model=TokenResponse, tags=["Auth"])
+@router.post("/login/", response_model=TokenResponse, include_in_schema=False)
 async def login(request: LoginRequest, db: Session = Depends(get_db)):
     """
     Login endpoint
@@ -86,7 +100,7 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password"
         )
-    
+
     if not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -112,6 +126,18 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
             "full_name": user.full_name,
             "role": role_str
         }
+    }
+
+
+@router.get("/login", tags=["Auth"])
+@router.get("/login/", include_in_schema=False)
+async def login_info():
+    """Information for login endpoint"""
+    return {
+        "status": "active",
+        "endpoint": "/api/auth/login",
+        "method_expected": "POST",
+        "message": "Auth login endpoint is active. Please submit a POST request with email and password."
     }
 
 

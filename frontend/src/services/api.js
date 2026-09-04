@@ -30,13 +30,31 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-// Handle responses
+// Handle responses & automatic backend fallback
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    const url = error.config?.url || ''
+  async (error) => {
+    const originalRequest = error.config
+    const url = originalRequest?.url || ''
     const isAuthRoute = url.includes('/auth/login') || url.includes('/auth/register')
-    
+
+    // If static dev/preview server or proxy returned 405 or 404, retry once directly against backend on port 8000
+    if (
+      originalRequest &&
+      !originalRequest._retried &&
+      (error.response?.status === 405 || error.response?.status === 404) &&
+      typeof window !== 'undefined'
+    ) {
+      originalRequest._retried = true
+      const host = window.location.hostname || 'localhost'
+      originalRequest.baseURL = `http://${host}:8000/api`
+      try {
+        return await axios(originalRequest)
+      } catch (retryError) {
+        return Promise.reject(retryError)
+      }
+    }
+
     // Do NOT force redirect to /login if the request itself was an authentication attempt
     if (error.response?.status === 401 && !isAuthRoute) {
       localStorage.removeItem('token')
