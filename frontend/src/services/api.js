@@ -8,11 +8,8 @@ const getBaseUrl = () => {
     const root = import.meta.env.VITE_API_URL.replace(/\/$/, '')
     return `${root}/api`
   }
-  // If window is defined and not on localhost:5173, allow relative /api
-  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
-    return '/api'
-  }
-  return 'http://localhost:8000/api'
+  // Use same-origin /api proxy by default in dev & deployment
+  return '/api'
 }
 
 const API_BASE_URL = getBaseUrl()
@@ -37,10 +34,16 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const url = error.config?.url || ''
+    const isAuthRoute = url.includes('/auth/login') || url.includes('/auth/register')
+    
+    // Do NOT force redirect to /login if the request itself was an authentication attempt
+    if (error.response?.status === 401 && !isAuthRoute) {
       localStorage.removeItem('token')
       localStorage.removeItem('user')
-      window.location.href = '/login'
+      if (typeof window !== 'undefined' && window.location.pathname !== '/login' && window.location.pathname !== '/') {
+        window.location.href = '/login'
+      }
     }
     return Promise.reject(error)
   }

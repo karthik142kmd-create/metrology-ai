@@ -1,9 +1,10 @@
 import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { authAPI } from '../services/api'
+import { parseErrorMessage } from '../utils/errorParser'
 import { useLanguage } from '../context/LanguageContext'
 import LanguageSwitcher from '../components/LanguageSwitcher'
-import { AlertCircle, CheckCircle, Scale, ArrowLeft, ArrowRight, ShieldCheck } from 'lucide-react'
+import { AlertCircle, CheckCircle, Scale, ArrowLeft, ArrowRight, ShieldCheck, LogOut } from 'lucide-react'
 
 function LoginPage({ setUser, initialIsRegister = false }) {
   const { t } = useLanguage()
@@ -16,26 +17,56 @@ function LoginPage({ setUser, initialIsRegister = false }) {
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
+  // Check if already logged in
+  const currentUserStr = localStorage.getItem('user')
+  let currentUser = null
+  try {
+    currentUser = currentUserStr ? JSON.parse(currentUserStr) : null
+  } catch (e) {
+    currentUser = null
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    if (setUser) setUser(null)
+    setEmail('')
+    setPassword('')
+    setError('')
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+
+    const cleanEmail = email.trim().toLowerCase()
+    if (!cleanEmail) {
+      setError('Please enter your email address')
+      return
+    }
+
+    if (isRegister && password.length < 6) {
+      setError('Password must be at least 6 characters long.')
+      return
+    }
+
     setLoading(true)
 
     try {
       if (!isRegister) {
-        const response = await authAPI.login(email, password)
+        const response = await authAPI.login(cleanEmail, password)
         const { access_token, user } = response.data
 
         localStorage.setItem('token', access_token)
         localStorage.setItem('user', JSON.stringify(user))
 
-        setUser(user)
+        if (setUser) setUser(user)
         navigate('/analyze')
       } else {
         const response = await authAPI.register({
-          email,
+          email: cleanEmail,
           password,
-          full_name: fullName,
+          full_name: fullName.trim(),
           role
         })
         const { access_token, user } = response.data
@@ -43,11 +74,11 @@ function LoginPage({ setUser, initialIsRegister = false }) {
         localStorage.setItem('token', access_token)
         localStorage.setItem('user', JSON.stringify(user))
 
-        setUser(user)
+        if (setUser) setUser(user)
         navigate('/analyze')
       }
     } catch (err) {
-      setError(err.response?.data?.detail || (isRegister ? 'Registration failed' : 'Login failed'))
+      setError(parseErrorMessage(err, isRegister ? 'Registration failed. Please check your information.' : 'Invalid email or password.'))
     } finally {
       setLoading(false)
     }
@@ -73,10 +104,10 @@ function LoginPage({ setUser, initialIsRegister = false }) {
       localStorage.setItem('token', access_token)
       localStorage.setItem('user', JSON.stringify(user))
 
-      setUser(user)
+      if (setUser) setUser(user)
       navigate('/analyze')
     } catch (err) {
-      setError(err.response?.data?.detail || 'Demo login failed')
+      setError(parseErrorMessage(err, 'Demo login failed. Make sure backend is running.'))
     } finally {
       setLoading(false)
     }
@@ -175,6 +206,35 @@ function LoginPage({ setUser, initialIsRegister = false }) {
               </>
             )}
 
+            {currentUser && (
+              <div className="mb-4 p-3 rounded-xl bg-blue-950/40 border border-blue-800/60 flex items-center justify-between text-xs text-blue-200">
+                <div>
+                  <span className="text-slate-400">Signed in as: </span>
+                  <span className="font-bold text-white">{currentUser.email}</span>
+                  <span className="ml-1.5 px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 text-[10px] uppercase font-semibold">
+                    {currentUser.role}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => navigate('/analyze')}
+                    className="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs"
+                  >
+                    Open Scanner →
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="p-1 text-slate-400 hover:text-red-400 transition"
+                    title="Sign Out"
+                  >
+                    <LogOut size={14} />
+                  </button>
+                </div>
+              </div>
+            )}
+
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-1.5">
                 {t('emailAddress')}
@@ -184,20 +244,31 @@ function LoginPage({ setUser, initialIsRegister = false }) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="user@metrology.ai"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck="false"
                 className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 text-base sm:text-sm"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                {t('password')}
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-semibold text-slate-300">
+                  {t('password')}
+                </label>
+                {isRegister && (
+                  <span className="text-[11px] text-slate-400">Min. 6 characters</span>
+                )}
+              </div>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
+                autoCapitalize="none"
+                autoCorrect="off"
+                minLength={isRegister ? 6 : undefined}
                 className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 text-base sm:text-sm"
                 required
               />

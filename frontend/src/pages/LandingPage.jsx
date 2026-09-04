@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../context/LanguageContext'
 import LanguageSwitcher from '../components/LanguageSwitcher'
 import { authAPI } from '../services/api'
+import { parseErrorMessage } from '../utils/errorParser'
 import {
   Scale, ShieldCheck, Zap, ArrowRight, CheckCircle2,
-  AlertTriangle, Lock, X, ChevronRight, Sparkles
+  AlertTriangle, Lock, X, ChevronRight, Sparkles, LogOut, User
 } from 'lucide-react'
 
 function LandingPage({ user, setUser }) {
@@ -28,26 +29,43 @@ function LandingPage({ user, setUser }) {
   const [demoSelectedCategory, setDemoSelectedCategory] = useState('Food')
   const [demoActiveScan, setDemoActiveScan] = useState(false)
 
+  const handleLogout = () => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    if (setUser) setUser(null)
+  }
+
   const handleAuthSubmit = async (e) => {
     e.preventDefault()
     setError('')
+
+    const cleanEmail = email.trim().toLowerCase()
+    if (!cleanEmail) {
+      setError('Please enter your email address')
+      return
+    }
+
+    if (authMode === 'register' && password.length < 6) {
+      setError('Password must be at least 6 characters long.')
+      return
+    }
+
     setLoading(true)
 
     try {
       if (authMode === 'login') {
-        const res = await authAPI.login(email, password)
+        const res = await authAPI.login(cleanEmail, password)
         const { access_token, user: userData } = res.data
         localStorage.setItem('token', access_token)
         localStorage.setItem('user', JSON.stringify(userData))
         if (setUser) setUser(userData)
         setAuthModalOpen(false)
-        // Navigate directly to scanner after sign in
         navigate('/analyze')
       } else {
         const res = await authAPI.register({
-          email,
+          email: cleanEmail,
           password,
-          full_name: fullName,
+          full_name: fullName.trim(),
           role
         })
         const { access_token, user: userData } = res.data
@@ -55,15 +73,10 @@ function LandingPage({ user, setUser }) {
         localStorage.setItem('user', JSON.stringify(userData))
         if (setUser) setUser(userData)
         setAuthModalOpen(false)
-        // Navigate directly to scanner after sign up
         navigate('/analyze')
       }
     } catch (err) {
-      if (!err.response) {
-        setError('Cannot connect to backend server. Make sure backend is running at http://localhost:8000.')
-      } else {
-        setError(err.response?.data?.detail || 'Authentication failed. Please check credentials.')
-      }
+      setError(parseErrorMessage(err, authMode === 'register' ? 'Registration failed. Please check your information.' : 'Invalid email or password.'))
     } finally {
       setLoading(false)
     }
@@ -91,14 +104,9 @@ function LandingPage({ user, setUser }) {
       localStorage.setItem('user', JSON.stringify(userData))
       if (setUser) setUser(userData)
       setAuthModalOpen(false)
-      // Navigate directly to scanner after demo login
       navigate('/analyze')
     } catch (err) {
-      if (!err.response) {
-        setError('Cannot connect to backend server. Make sure backend is running at http://localhost:8000.')
-      } else {
-        setError('Demo login failed. You can create a free account below.')
-      }
+      setError(parseErrorMessage(err, 'Demo login failed. Make sure backend is running.'))
     } finally {
       setLoading(false)
     }
@@ -147,6 +155,12 @@ function LandingPage({ user, setUser }) {
 
             {user ? (
               <div className="flex items-center space-x-1.5 sm:space-x-2">
+                <span className="text-xs text-slate-400 hidden lg:inline-block">
+                  Signed in as <strong className="text-white">{user.full_name || user.email}</strong>
+                </span>
+                <span className="hidden sm:inline-block text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                  {user.role}
+                </span>
                 <button
                   onClick={() => navigate('/analyze')}
                   className="text-xs font-semibold px-2.5 sm:px-3.5 py-1.5 rounded-lg bg-teal-500/20 text-teal-300 border border-teal-500/40 hover:bg-teal-500/30 transition flex items-center space-x-1"
@@ -159,6 +173,14 @@ function LandingPage({ user, setUser }) {
                   className="text-xs font-semibold px-2.5 sm:px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition shadow-sm hidden xs:inline-block"
                 >
                   {t('dashboard')}
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="text-xs text-slate-400 hover:text-red-400 p-1.5 rounded-lg hover:bg-slate-900 transition flex items-center space-x-1"
+                  title="Sign Out"
+                >
+                  <LogOut size={14} />
+                  <span className="hidden sm:inline text-[11px]">Sign Out</span>
                 </button>
               </div>
             ) : (
@@ -200,7 +222,7 @@ function LandingPage({ user, setUser }) {
         </p>
 
         {/* Primary Action Button (Sign in required to open scanner) */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-8 sm:mb-10 w-full max-w-sm sm:max-w-none mx-auto">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-4 sm:mb-6 w-full max-w-sm sm:max-w-none mx-auto">
           {user ? (
             <button
               onClick={() => navigate('/analyze')}
@@ -211,25 +233,52 @@ function LandingPage({ user, setUser }) {
               <ArrowRight size={16} />
             </button>
           ) : (
-            <button
-              onClick={() => openAuth('login')}
-              className="w-full sm:w-auto px-6 sm:px-8 py-3.5 rounded-xl font-bold text-sm bg-gradient-to-r from-blue-600 to-teal-500 hover:from-blue-500 hover:to-teal-400 text-white shadow-lg shadow-blue-600/25 transition duration-150 flex items-center justify-center space-x-2"
-            >
-              <Lock size={16} />
-              <span>{t('signInToScan')}</span>
-              <ArrowRight size={16} />
-            </button>
-          )}
-
-          {!user && (
-            <button
-              onClick={() => openAuth('register')}
-              className="w-full sm:w-auto px-6 py-3.5 rounded-xl font-semibold text-sm bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 hover:border-slate-700 transition flex items-center justify-center space-x-2"
-            >
-              <span>{t('createAccount')}</span>
-            </button>
+            <>
+              <button
+                onClick={() => openAuth('login')}
+                className="w-full sm:w-auto px-6 sm:px-8 py-3.5 rounded-xl font-bold text-sm bg-gradient-to-r from-blue-600 to-teal-500 hover:from-blue-500 hover:to-teal-400 text-white shadow-lg shadow-blue-600/25 transition duration-150 flex items-center justify-center space-x-2"
+              >
+                <Lock size={16} />
+                <span>{t('signInToScan')}</span>
+                <ArrowRight size={16} />
+              </button>
+              <button
+                onClick={() => openAuth('register')}
+                className="w-full sm:w-auto px-6 py-3.5 rounded-xl font-semibold text-sm bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 hover:border-slate-700 transition flex items-center justify-center space-x-2"
+              >
+                <span>{t('createAccount')}</span>
+              </button>
+            </>
           )}
         </div>
+
+        {/* 1-Click Demo Login Bar */}
+        {!user && (
+          <div className="flex flex-wrap items-center justify-center gap-2 mb-8 sm:mb-10 text-xs">
+            <span className="text-slate-400 font-medium">⚡ 1-Click Test Access:</span>
+            <button
+              type="button"
+              onClick={() => quickDemoLogin('inspector')}
+              className="px-3 py-1.5 rounded-lg bg-blue-950/60 border border-blue-800/60 hover:bg-blue-900/80 text-blue-300 font-semibold transition"
+            >
+              ⚡ Inspector Demo
+            </button>
+            <button
+              type="button"
+              onClick={() => quickDemoLogin('admin')}
+              className="px-3 py-1.5 rounded-lg bg-indigo-950/60 border border-indigo-800/60 hover:bg-indigo-900/80 text-indigo-300 font-semibold transition"
+            >
+              🛡️ Officer Demo
+            </button>
+            <button
+              type="button"
+              onClick={() => quickDemoLogin('consumer')}
+              className="px-3 py-1.5 rounded-lg bg-emerald-950/60 border border-emerald-800/60 hover:bg-emerald-900/80 text-emerald-300 font-semibold transition"
+            >
+              🛒 Consumer Demo
+            </button>
+          </div>
+        )}
 
         {/* 3 Clean Stats */}
         <div className="grid grid-cols-3 gap-2 sm:gap-6 max-w-xl mx-auto pt-4 border-t border-slate-800/60">
@@ -491,18 +540,29 @@ function LandingPage({ user, setUser }) {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@metrology.ai"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck="false"
                   className="w-full px-3 py-2.5 sm:py-2 rounded-lg bg-slate-950 border border-slate-800 text-white text-base sm:text-xs focus:outline-none focus:border-blue-500"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">{t('password')}</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-medium text-slate-300">{t('password')}</label>
+                  {authMode === 'register' && (
+                    <span className="text-[10px] text-slate-400">Min. 6 chars</span>
+                  )}
+                </div>
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  minLength={authMode === 'register' ? 6 : undefined}
                   className="w-full px-3 py-2.5 sm:py-2 rounded-lg bg-slate-950 border border-slate-800 text-white text-base sm:text-xs focus:outline-none focus:border-blue-500"
                   required
                 />

@@ -19,9 +19,10 @@ router = APIRouter()
 @router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED, tags=["Auth"])
 async def register(request: RegisterRequest, db: Session = Depends(get_db)):
     """
-    Register a new consumer account for packaged commodity compliance scanning
+    Register a new user account for packaged commodity compliance scanning
     """
-    existing_user = db.query(User).filter(User.email == request.email).first()
+    clean_email = request.email.strip().lower()
+    existing_user = db.query(User).filter(User.email == clean_email).first()
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -29,13 +30,18 @@ async def register(request: RegisterRequest, db: Session = Depends(get_db)):
         )
     
     hashed_pwd = AuthService.hash_password(request.password)
-    # All users are consumers of packaged commodities
-    user_role = UserRole.CONSUMER
+    role_mapping = {
+        "inspector": UserRole.INSPECTOR,
+        "admin": UserRole.ADMIN,
+        "consumer": UserRole.CONSUMER
+    }
+    req_role = (request.role or "inspector").lower()
+    user_role = role_mapping.get(req_role, UserRole.CONSUMER)
     
     new_user = User(
-        email=request.email,
+        email=clean_email,
         hashed_password=hashed_pwd,
-        full_name=request.full_name,
+        full_name=request.full_name.strip(),
         role=user_role,
         is_active=True
     )
@@ -72,7 +78,8 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
     Login endpoint
     Returns JWT token if credentials are valid
     """
-    user = db.query(User).filter(User.email == request.email).first()
+    clean_email = request.email.strip().lower()
+    user = db.query(User).filter(User.email == clean_email).first()
     
     if not user or not AuthService.verify_password(request.password, user.hashed_password):
         raise HTTPException(

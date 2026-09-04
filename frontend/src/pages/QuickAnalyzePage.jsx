@@ -100,7 +100,29 @@ const SAMPLE_LABELS = [
   }
 ]
 
-export default function QuickAnalyzePage() {
+export default function QuickAnalyzePage({ user: propUser }) {
+  const [currentUser, setCurrentUser] = useState(() => {
+    if (propUser) return propUser
+    try {
+      const stored = localStorage.getItem('user')
+      return stored ? JSON.parse(stored) : null
+    } catch (e) {
+      return null
+    }
+  })
+
+  React.useEffect(() => {
+    if (propUser) {
+      setCurrentUser(propUser)
+    }
+  }, [propUser])
+
+  const handleLogout = () => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    setCurrentUser(null)
+  }
+
   const [selectedFile, setSelectedFile] = useState(null)
   const [previewUrl, setPreviewUrl] = useState(null)
   const [analyzing, setAnalyzing] = useState(false)
@@ -264,18 +286,47 @@ export default function QuickAnalyzePage() {
               <span className="hidden sm:inline">← Why Compliance Matters</span>
               <span className="sm:hidden">← Overview</span>
             </Link>
-            <Link
-              to="/dashboard"
-              className="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition hidden md:inline-block"
-            >
-              Dashboard
-            </Link>
-            <Link
-              to="/login"
-              className="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-200 bg-slate-800 hover:bg-slate-700 transition"
-            >
-              Sign In
-            </Link>
+            {currentUser ? (
+              <div className="flex items-center space-x-1.5 sm:space-x-2">
+                <Link
+                  to="/dashboard"
+                  className="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition hidden md:inline-block"
+                >
+                  Dashboard
+                </Link>
+                <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-indigo-950/70 border border-indigo-800/70 text-indigo-200 text-xs">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
+                  <span className="font-medium hidden sm:inline max-w-[130px] truncate">
+                    {currentUser.full_name || currentUser.email}
+                  </span>
+                  <span className="text-[10px] uppercase font-bold text-indigo-300 px-1 py-0.2 bg-indigo-500/20 rounded">
+                    {currentUser.role}
+                  </span>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="px-2 py-1.5 rounded-lg text-xs text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition"
+                  title="Sign Out"
+                >
+                  Sign Out
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-1.5">
+                <Link
+                  to="/login"
+                  className="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 transition shadow-sm"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  to="/register"
+                  className="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 bg-slate-800 hover:bg-slate-700 transition hidden xs:inline-block"
+                >
+                  Sign Up
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </header>
