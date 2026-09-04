@@ -1,6 +1,21 @@
 import axios from 'axios'
 
-const API_BASE_URL = 'http://localhost:8000/api'
+const getBaseUrl = () => {
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL
+  }
+  if (import.meta.env.VITE_API_URL) {
+    const root = import.meta.env.VITE_API_URL.replace(/\/$/, '')
+    return `${root}/api`
+  }
+  // If window is defined and not on localhost:5173, allow relative /api
+  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+    return '/api'
+  }
+  return 'http://localhost:8000/api'
+}
+
+const API_BASE_URL = getBaseUrl()
 
 const api = axios.create({
   baseURL: API_BASE_URL,

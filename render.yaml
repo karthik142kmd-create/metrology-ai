@@ -14,7 +14,7 @@ services:
       - key: JWT_SECRET_KEY
         generateValue: true
       - key: OCR_PROVIDER
-        value: tesseract
+        value: auto
       - key: TESSERACT_PATH
         value: /usr/bin/tesseract
       - key: AI_PROVIDER

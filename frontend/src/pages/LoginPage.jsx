@@ -5,9 +5,9 @@ import { useLanguage } from '../context/LanguageContext'
 import LanguageSwitcher from '../components/LanguageSwitcher'
 import { AlertCircle, CheckCircle, Scale, ArrowLeft, ArrowRight, ShieldCheck } from 'lucide-react'
 
-function LoginPage({ setUser }) {
+function LoginPage({ setUser, initialIsRegister = false }) {
   const { t } = useLanguage()
-  const [isRegister, setIsRegister] = useState(false)
+  const [isRegister, setIsRegister] = useState(initialIsRegister)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [fullName, setFullName] = useState('')
@@ -58,6 +58,9 @@ function LoginPage({ setUser }) {
     if (roleType === 'admin') {
       setEmail('admin@metrology.ai')
       setPassword('admin123')
+    } else if (roleType === 'consumer') {
+      setEmail('consumer@metrology.ai')
+      setPassword('consumer123')
     } else {
       setEmail('inspector@metrology.ai')
       setPassword('inspector123')
@@ -205,35 +208,59 @@ function LoginPage({ setUser }) {
           {!isRegister && (
             <div className="mt-6 pt-6 border-t border-slate-800">
               <p className="text-xs text-slate-400 mb-3 text-center font-medium">
-                {t('quickDemoLogin')}
+                {t('quickDemoLogin')} (1-Click Test Access)
               </p>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 <button
                   type="button"
                   onClick={() => fillDemoCredentials('inspector')}
-                  className="w-full text-xs px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition"
+                  className="text-xs px-2 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition text-center"
+                  title="Inspector Demo"
                 >
-                  ⚡ {t('demoInspector')}
+                  ⚡ Inspector
                 </button>
                 <button
                   type="button"
                   onClick={() => fillDemoCredentials('admin')}
-                  className="w-full text-xs px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition"
+                  className="text-xs px-2 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition text-center"
+                  title="Compliance Officer Demo"
                 >
-                  🛡️ {t('demoAdmin')}
+                  🛡️ Officer
+                </button>
+                <button
+                  type="button"
+                  onClick={() => fillDemoCredentials('consumer')}
+                  className="text-xs px-2 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition text-center"
+                  title="Consumer Demo"
+                >
+                  🛒 Consumer
                 </button>
               </div>
             </div>
           )}
+
+          {/* Direct Scanner Link */}
+          <div className="mt-6 pt-5 border-t border-slate-800 text-center">
+            <Link
+              to="/analyze"
+              className="inline-flex items-center space-x-2 text-xs font-semibold text-blue-400 hover:text-blue-300 transition py-1 px-2 rounded-lg hover:bg-blue-500/10"
+            >
+              <span>🚀 Or Launch Instant Scanner (No Login Required)</span>
+              <ArrowRight size={13} />
+            </Link>
+          </div>
         </div>
 
         {/* Feature Pills */}
-        <div className="grid grid-cols-2 gap-2.5 text-slate-400 text-xs text-center">
-          <div className="bg-slate-900/60 border border-slate-800/80 rounded-xl py-2 px-3">
+        <div className="grid grid-cols-3 gap-2 text-slate-400 text-[11px] text-center">
+          <div className="bg-slate-900/60 border border-slate-800/80 rounded-xl py-2 px-2">
             ✓ PCR 2011 Rules
           </div>
-          <div className="bg-slate-900/60 border border-slate-800/80 rounded-xl py-2 px-3">
-            ✓ AI Risk Assessment
+          <div className="bg-slate-900/60 border border-slate-800/80 rounded-xl py-2 px-2">
+            ✓ AI Assessment
+          </div>
+          <div className="bg-slate-900/60 border border-slate-800/80 rounded-xl py-2 px-2">
+            ✓ PDF Reports
           </div>
         </div>
       </div>

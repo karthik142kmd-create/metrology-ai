@@ -10,6 +10,7 @@ import NewInspectionPage from './pages/NewInspectionPage'
 import RulesPage from './pages/RulesPage'
 import SettingsPage from './pages/SettingsPage'
 import ProtectedRoute from './components/ProtectedRoute'
+import LoginPage from './pages/LoginPage'
 
 function App() {
   const [user, setUser] = useState(null)
@@ -44,12 +45,17 @@ function App() {
     <LanguageProvider>
       <BrowserRouter>
         <Routes>
-          {/* Main Quick Image Upload & Government Compliance Rate Analyzer */}
-          <Route path="/" element={<QuickAnalyzePage />} />
-          <Route path="/analyze" element={<QuickAnalyzePage />} />
-
-          {/* Landing / Marketing Showcase */}
+          {/* Main Landing & Value Proposition Showcase */}
+          <Route path="/" element={<LandingPage user={user} setUser={setUser} />} />
           <Route path="/landing" element={<LandingPage user={user} setUser={setUser} />} />
+
+          {/* Quick Image Upload & Government Compliance Rate Analyzer (Current Page) */}
+          <Route path="/analyze" element={<QuickAnalyzePage user={user} />} />
+          <Route path="/scanner" element={<QuickAnalyzePage user={user} />} />
+
+          {/* Authentication Routes */}
+          <Route path="/login" element={<LoginPage setUser={setUser} />} />
+          <Route path="/register" element={<LoginPage setUser={setUser} initialIsRegister={true} />} />
 
           {/* Authenticated Application Area */}
           <Route
@@ -108,7 +114,6 @@ function App() {
 
           {/* Redirect old products route and any unknown routes */}
           <Route path="/products" element={<Navigate to="/inspections" replace />} />
-          <Route path="/login" element={<Navigate to="/" replace />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

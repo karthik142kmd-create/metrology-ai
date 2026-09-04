@@ -229,7 +229,7 @@ export default function QuickAnalyzePage() {
       {/* Top Bar / Header */}
       <header className="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
+          <Link to="/" className="flex items-center space-x-3 hover:opacity-95 transition">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-blue-600 to-teal-400 flex items-center justify-center shadow-lg shadow-indigo-500/20">
               <Scale className="w-5 h-5 text-white" />
             </div>
@@ -244,26 +244,32 @@ export default function QuickAnalyzePage() {
                 Legal Metrology Act 2009 & Packaged Commodities Compliance Inspector
               </p>
             </div>
-          </div>
+          </Link>
 
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 sm:space-x-3">
             <Link
-              to="/dashboard"
-              className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition"
+              to="/"
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold text-indigo-300 hover:text-white bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 transition flex items-center space-x-1"
             >
-              Inspections Dashboard
+              <span>← Why Compliance Matters</span>
             </Link>
             <Link
-              to="/rules"
-              className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition hidden md:block"
+              to="/dashboard"
+              className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition hidden sm:inline-block"
             >
-              Government Rules
+              Dashboard
+            </Link>
+            <Link
+              to="/login"
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-200 bg-slate-800 hover:bg-slate-700 transition"
+            >
+              Sign In
             </Link>
             <a
               href="https://consumeraffairs.nic.in"
               target="_blank"
               rel="noreferrer"
-              className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 flex items-center space-x-1 border border-slate-800 hover:border-slate-700 transition"
+              className="px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hidden md:flex items-center space-x-1 border border-slate-800 hover:border-slate-700 transition"
             >
               <span>Dept. of Consumer Affairs</span>
               <ExternalLink className="w-3 h-3" />
