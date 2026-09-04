@@ -38,7 +38,7 @@ api.interceptors.response.use(
     const url = originalRequest?.url || ''
     const isAuthRoute = url.includes('/auth/login') || url.includes('/auth/register')
 
-    // If static dev/preview server or proxy returned 405 or 404, retry once directly against backend on port 8000
+    // If static dev/preview server or proxy returned 405 or 404, retry once directly against backend
     if (
       originalRequest &&
       !originalRequest._retried &&
@@ -47,7 +47,11 @@ api.interceptors.response.use(
     ) {
       originalRequest._retried = true
       const host = window.location.hostname || 'localhost'
-      originalRequest.baseURL = `http://${host}:8000/api`
+      if (host === 'localhost' || host === '127.0.0.1') {
+        originalRequest.baseURL = 'http://127.0.0.1:8000/api'
+      } else {
+        originalRequest.baseURL = 'https://metrologyai-backend.onrender.com/api'
+      }
       try {
         return await axios(originalRequest)
       } catch (retryError) {
