@@ -46,6 +46,15 @@ body {
 .bg-primary { @apply bg-[#1a3a5c]; }
 .bg-secondary { @apply bg-[#2d5a8c]; }
 
+/* Hide scrollbar for Chrome, Safari, Opera, Edge, Firefox */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* Animations */
 @keyframes spin-slow {
   from { transform: rotate(0deg); }

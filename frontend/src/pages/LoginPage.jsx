@@ -97,7 +97,7 @@ function LoginPage({ setUser, initialIsRegister = false }) {
         </div>
 
         {/* Card */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-6 sm:p-8 mb-6">
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-5 sm:p-8 mb-6">
           {/* Tabs */}
           <div className="flex rounded-xl bg-slate-950 p-1 mb-6 border border-slate-800">
             <button
@@ -139,7 +139,7 @@ function LoginPage({ setUser, initialIsRegister = false }) {
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="Officer Sharma"
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 text-sm"
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 text-base sm:text-sm"
                     required
                   />
                 </div>
@@ -151,7 +151,7 @@ function LoginPage({ setUser, initialIsRegister = false }) {
                   <select
                     value={role}
                     onChange={(e) => setRole(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-blue-500 text-sm"
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-blue-500 text-base sm:text-sm"
                   >
                     <option value="inspector">{t('inspectorRole')}</option>
                     <option value="admin">{t('adminRole')}</option>
@@ -169,7 +169,7 @@ function LoginPage({ setUser, initialIsRegister = false }) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="user@metrology.ai"
-                className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 text-sm"
+                className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 text-base sm:text-sm"
                 required
               />
             </div>
@@ -183,7 +183,7 @@ function LoginPage({ setUser, initialIsRegister = false }) {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 text-sm"
+                className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 text-base sm:text-sm"
                 required
               />
             </div>
