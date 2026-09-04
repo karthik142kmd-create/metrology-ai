@@ -62,15 +62,23 @@ function InspectionDetailPage() {
   const handleGenerateReport = async () => {
     try {
       setGeneratingReport(true)
+      // Step 1: generate and save the PDF on the server
       await reportsAPI.generate(id, true, true)
-      const blob = await reportsAPI.download(id)
+      // Step 2: download the blob
+      const res = await reportsAPI.download(id)
+      // res.data is already a Blob (responseType: 'blob' is set in api.js)
+      const blob = new Blob([res.data], { type: 'application/pdf' })
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = `inspection_${id}_legal_report.pdf`
+      link.setAttribute('download', `MetrologyAI_Compliance_Report_${id}.pdf`)
+      document.body.appendChild(link)
       link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
     } catch (err) {
       console.error('Failed to generate report:', err)
+      alert('PDF Generation Error: ' + (err.response?.data?.detail || err.message || 'Unknown error'))
     } finally {
       setGeneratingReport(false)
     }

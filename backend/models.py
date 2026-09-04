@@ -10,7 +10,9 @@ import enum
 
 
 class UserRole(str, enum.Enum):
-    """User roles"""
+    """User roles — single consumer role for packaged commodity consumers"""
+    CONSUMER = "CONSUMER"
+    # Legacy aliases kept for backward compatibility with existing DB data
     ADMIN = "ADMIN"
     INSPECTOR = "INSPECTOR"
 

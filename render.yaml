@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: metrologyai-backend
+    runtime: python
+    rootDir: backend
+    buildCommand: "bash build.sh"
+    startCommand: "uvicorn main:app --host 0.0.0.0 --port $PORT"
+    plan: starter   # Change to 'free' for free tier (spins down after inactivity)
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: metrologyai-db
+          property: connectionString
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: OCR_PROVIDER
+        value: tesseract
+      - key: TESSERACT_PATH
+        value: /usr/bin/tesseract
+      - key: AI_PROVIDER
+        value: builtin
+      - key: DEBUG
+        value: false
+      - key: CORS_ORIGINS
+        # Update this to your Vercel/Netlify frontend URL after deploying
+        value: "https://metrologyai.vercel.app,http://localhost:5173"
+    disk:
+      name: metrologyai-uploads
+      mountPath: /app/uploads
+      sizeGB: 5
+
+databases:
+  - name: metrologyai-db
+    databaseName: metrologyai
+    user: metrologyai_user
+    plan: free

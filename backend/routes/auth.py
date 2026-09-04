@@ -19,7 +19,7 @@ router = APIRouter()
 @router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED, tags=["Auth"])
 async def register(request: RegisterRequest, db: Session = Depends(get_db)):
     """
-    Register a new inspector or admin account
+    Register a new consumer account for packaged commodity compliance scanning
     """
     existing_user = db.query(User).filter(User.email == request.email).first()
     if existing_user:
@@ -29,7 +29,8 @@ async def register(request: RegisterRequest, db: Session = Depends(get_db)):
         )
     
     hashed_pwd = AuthService.hash_password(request.password)
-    user_role = UserRole.ADMIN if request.role and request.role.lower() == "admin" else UserRole.INSPECTOR
+    # All users are consumers of packaged commodities
+    user_role = UserRole.CONSUMER
     
     new_user = User(
         email=request.email,

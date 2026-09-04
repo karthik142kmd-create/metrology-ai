@@ -26,27 +26,17 @@ def seed_initial_data():
             logger.info("Database already seeded")
             return
         
-        # Create admin user
-        admin = User(
-            email="admin@metrology.ai",
-            full_name="Admin Officer",
-            hashed_password=AuthService.hash_password("admin123"),
-            role=UserRole.ADMIN,
+        # Create demo consumer user (single user type: packaged commodity consumer)
+        consumer = User(
+            email="consumer@metrology.ai",
+            full_name="Demo Consumer",
+            hashed_password=AuthService.hash_password("consumer123"),
+            role=UserRole.CONSUMER,
             is_active=True
         )
-        db.add(admin)
+        db.add(consumer)
         db.flush()
-        
-        # Create inspector user
-        inspector = User(
-            email="inspector@metrology.ai",
-            full_name="Inspector Officer",
-            hashed_password=AuthService.hash_password("inspector123"),
-            role=UserRole.INSPECTOR,
-            is_active=True
-        )
-        db.add(inspector)
-        db.flush()
+        inspector = consumer  # alias so inspection seeding below still works
         
         # Create sample products
         products_data = [

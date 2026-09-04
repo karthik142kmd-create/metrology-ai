@@ -2,12 +2,10 @@ import React, { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { LanguageProvider } from './context/LanguageContext'
 import LandingPage from './pages/LandingPage'
-import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
 import InspectionsPage from './pages/InspectionsPage'
 import InspectionDetailPage from './pages/InspectionDetailPage'
 import NewInspectionPage from './pages/NewInspectionPage'
-import ProductsPage from './pages/ProductsPage'
 import RulesPage from './pages/RulesPage'
 import SettingsPage from './pages/SettingsPage'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -45,9 +43,15 @@ function App() {
     <LanguageProvider>
       <BrowserRouter>
         <Routes>
-          {/* Public Landing Page */}
-          <Route path="/" element={<LandingPage user={user} setUser={setUser} />} />
-          <Route path="/login" element={<LoginPage setUser={setUser} />} />
+          {/* Public Landing Page — if user is already logged in, redirect straight to dashboard */}
+          <Route
+            path="/"
+            element={
+              user
+                ? <Navigate to="/dashboard" replace />
+                : <LandingPage user={user} setUser={setUser} />
+            }
+          />
 
           {/* Authenticated Application Area */}
           <Route
@@ -87,15 +91,6 @@ function App() {
           />
 
           <Route
-            path="/products"
-            element={
-              <ProtectedRoute user={user}>
-                <ProductsPage />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
             path="/rules"
             element={
               <ProtectedRoute user={user}>
@@ -113,7 +108,9 @@ function App() {
             }
           />
 
-          {/* Catch-all redirect */}
+          {/* Redirect old products route and any unknown routes */}
+          <Route path="/products" element={<Navigate to="/inspections" replace />} />
+          <Route path="/login" element={<Navigate to="/" replace />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

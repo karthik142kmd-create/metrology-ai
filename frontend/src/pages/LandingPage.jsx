@@ -21,7 +21,7 @@ function LandingPage({ user, setUser }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [fullName, setFullName] = useState('')
-  const [role, setRole] = useState('inspector')
+  const [role, setRole] = useState('consumer')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -49,7 +49,7 @@ function LandingPage({ user, setUser }) {
           email,
           password,
           full_name: fullName,
-          role
+          role: 'consumer'  // all users are consumers
         })
         const { access_token, user: userData } = res.data
         localStorage.setItem('token', access_token)
@@ -71,15 +71,11 @@ function LandingPage({ user, setUser }) {
     setAuthModalOpen(true)
   }
 
-  const quickDemoLogin = async (type) => {
+  const quickDemoLogin = async () => {
     setLoading(true)
     setError('')
-    const creds = type === 'admin' 
-      ? { email: 'admin@metrology.ai', pass: 'admin123' }
-      : { email: 'inspector@metrology.ai', pass: 'inspector123' }
-    
     try {
-      const res = await authAPI.login(creds.email, creds.pass)
+      const res = await authAPI.login('consumer@metrology.ai', 'consumer123')
       const { access_token, user: userData } = res.data
       localStorage.setItem('token', access_token)
       localStorage.setItem('user', JSON.stringify(userData))
@@ -87,7 +83,7 @@ function LandingPage({ user, setUser }) {
       setAuthModalOpen(false)
       navigate('/dashboard')
     } catch (err) {
-      setError('Failed to authenticate demo account')
+      setError('Demo account unavailable — please create a free account above')
     } finally {
       setLoading(false)
     }
@@ -126,10 +122,10 @@ function LandingPage({ user, setUser }) {
 
             {user ? (
               <button
-                onClick={() => navigate('/dashboard')}
+                onClick={() => navigate('/inspections/new')}
                 className="inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-lg shadow-blue-600/30 transition duration-150 transform hover:-translate-y-0.5"
               >
-                <span>{t('dashboard')}</span>
+                <span>Scan a Product</span>
                 <ArrowRight size={18} />
               </button>
             ) : (
@@ -496,28 +492,17 @@ function LandingPage({ user, setUser }) {
               {authMode === 'register' && (
                 <>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">{t('fullName')}</label>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">{t('fullName') || 'Full Name'}</label>
                     <input
                       type="text"
                       required
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      placeholder="Officer Sharma"
+                      placeholder="Your Name"
                       className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 text-sm"
                     />
                   </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">{t('role')}</label>
-                    <select
-                      value={role}
-                      onChange={(e) => setRole(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-blue-500 text-sm"
-                    >
-                      <option value="inspector">{t('inspectorRole')}</option>
-                      <option value="admin">{t('adminRole')}</option>
-                    </select>
-                  </div>
+                  {/* Role is always Consumer — no selector shown */}
                 </>
               )}
 
@@ -554,27 +539,19 @@ function LandingPage({ user, setUser }) {
               </button>
             </form>
 
-            {/* Quick Demo Access Buttons */}
+            {/* Quick Demo Access */}
             <div className="mt-6 pt-5 border-t border-slate-800">
               <p className="text-[11px] text-center text-slate-400 font-medium mb-3">
-                {t('quickDemoLogin')}
+                Want to try it first?
               </p>
-              <div className="grid grid-cols-2 gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => quickDemoLogin('inspector')}
-                  className="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 transition text-center"
-                >
-                  ⚡ {t('demoInspector')}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => quickDemoLogin('admin')}
-                  className="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 transition text-center"
-                >
-                  🛡️ {t('demoAdmin')}
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => quickDemoLogin()}
+                disabled={loading}
+                className="w-full px-3 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 transition text-center border border-slate-700 disabled:opacity-50"
+              >
+                ⚡ Try Demo Account
+              </button>
             </div>
           </div>
         </div>
