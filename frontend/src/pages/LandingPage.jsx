@@ -6,7 +6,7 @@ import { authAPI } from '../services/api'
 import { parseErrorMessage } from '../utils/errorParser'
 import {
   Scale, ShieldCheck, Zap, ArrowRight, CheckCircle2,
-  AlertTriangle, Lock, X, ChevronRight, Sparkles, LogOut, User
+  AlertTriangle, Lock, X, ChevronRight, Sparkles, LogOut, User, Menu
 } from 'lucide-react'
 
 function LandingPage({ user, setUser }) {
@@ -138,6 +138,9 @@ function LandingPage({ user, setUser }) {
     }
   }
 
+  // Mobile navigation drawer state
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
+
   const runDemoScan = () => {
     setDemoActiveScan(true)
     setTimeout(() => {
@@ -161,7 +164,7 @@ function LandingPage({ user, setUser }) {
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-blue-600 selection:text-white">
       
       {/* Navigation */}
-      <header className="sticky top-0 z-30 backdrop-blur-md bg-slate-950/80 border-b border-slate-800/80">
+      <header className="sticky top-0 z-30 backdrop-blur-md bg-slate-950/90 border-b border-slate-800/80">
         <div className="max-w-6xl mx-auto px-3 sm:px-6 h-16 flex items-center justify-between">
           
           <div className="flex items-center space-x-2.5 sm:space-x-3 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
@@ -176,27 +179,28 @@ function LandingPage({ user, setUser }) {
             </div>
           </div>
 
-          <div className="flex items-center space-x-2 sm:space-x-4">
+          {/* Desktop & Tablet Navigation */}
+          <div className="hidden sm:flex items-center space-x-3">
             <LanguageSwitcher />
 
             {user ? (
-              <div className="flex items-center space-x-1.5 sm:space-x-2">
+              <div className="flex items-center space-x-2">
                 <span className="text-xs text-slate-400 hidden lg:inline-block">
                   Signed in as <strong className="text-white">{user.full_name || user.email}</strong>
                 </span>
-                <span className="hidden sm:inline-block text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                <span className="text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">
                   {user.role}
                 </span>
                 <button
                   onClick={() => navigate('/analyze')}
-                  className="text-xs font-semibold px-2.5 sm:px-3.5 py-1.5 rounded-lg bg-teal-500/20 text-teal-300 border border-teal-500/40 hover:bg-teal-500/30 transition flex items-center space-x-1"
+                  className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-teal-500/20 text-teal-300 border border-teal-500/40 hover:bg-teal-500/30 transition flex items-center space-x-1"
                 >
                   <Zap size={13} className="text-teal-400 shrink-0" />
                   <span>{t('openScanner')}</span>
                 </button>
                 <button
                   onClick={() => navigate('/dashboard')}
-                  className="text-xs font-semibold px-2.5 sm:px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition shadow-sm hidden xs:inline-block"
+                  className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition shadow-sm"
                 >
                   {t('dashboard')}
                 </button>
@@ -206,27 +210,155 @@ function LandingPage({ user, setUser }) {
                   title="Sign Out"
                 >
                   <LogOut size={14} />
-                  <span className="hidden sm:inline text-[11px]">Sign Out</span>
+                  <span className="text-[11px]">Sign Out</span>
                 </button>
               </div>
             ) : (
-              <div className="flex items-center space-x-1.5 sm:space-x-2">
+              <div className="flex items-center space-x-2">
                 <button
                   onClick={() => openAuth('login')}
-                  className="text-xs font-medium text-slate-300 hover:text-white px-2.5 sm:px-3 py-1.5 rounded-lg hover:bg-slate-900 transition"
+                  className="text-xs font-medium text-slate-300 hover:text-white px-3 py-1.5 rounded-lg hover:bg-slate-900 transition"
                 >
                   {t('signIn')}
                 </button>
                 <button
                   onClick={() => openAuth('register')}
-                  className="text-xs font-semibold px-3 sm:px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition shadow-sm"
+                  className="text-xs font-semibold px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition shadow-sm"
                 >
                   {t('signUp')}
                 </button>
               </div>
             )}
           </div>
+
+          {/* Mobile Direct Action & Hamburger (Always visible on mobile) */}
+          <div className="flex sm:hidden items-center space-x-1.5">
+            {user ? (
+              <>
+                <button
+                  onClick={() => navigate('/analyze')}
+                  className="text-[11px] font-bold px-2.5 py-1.5 rounded-lg bg-blue-600 text-white shadow-sm flex items-center space-x-1"
+                >
+                  <Zap size={12} />
+                  <span>Scanner</span>
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="text-[11px] text-slate-400 hover:text-red-400 px-2 py-1.5 rounded-lg bg-slate-900 border border-slate-800"
+                >
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => openAuth('login')}
+                  className="text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 hover:bg-slate-800 active:scale-95 transition"
+                >
+                  Sign In
+                </button>
+                <button
+                  onClick={() => openAuth('register')}
+                  className="text-xs font-bold px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-600/30 active:scale-95 transition"
+                >
+                  Sign Up
+                </button>
+              </>
+            )}
+
+            {/* Mobile Hamburger Toggle Button */}
+            <button
+              onClick={() => setMobileNavOpen(!mobileNavOpen)}
+              className="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:bg-slate-800 transition"
+              aria-label="Toggle navigation menu"
+            >
+              <Menu size={18} />
+            </button>
+          </div>
         </div>
+
+        {/* Mobile Slide-Down Drawer Menu */}
+        {mobileNavOpen && (
+          <div className="sm:hidden border-t border-slate-800 bg-slate-950 px-4 py-4 space-y-4 animate-in slide-in-from-top-2 duration-150">
+            {/* User status or direct Sign In / Sign Up buttons */}
+            {user ? (
+              <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-slate-400">Signed in as</span>
+                  <span className="text-[10px] uppercase font-bold text-blue-400 px-1.5 py-0.5 rounded bg-blue-950 border border-blue-800/60">
+                    {user.role}
+                  </span>
+                </div>
+                <p className="text-sm font-bold text-white truncate">{user.full_name || user.email}</p>
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  <button
+                    onClick={() => { setMobileNavOpen(false); navigate('/dashboard') }}
+                    className="py-2 px-3 rounded-lg bg-blue-600 text-white text-xs font-bold text-center"
+                  >
+                    Dashboard
+                  </button>
+                  <button
+                    onClick={() => { setMobileNavOpen(false); handleLogout() }}
+                    className="py-2 px-3 rounded-lg bg-slate-800 text-rose-300 text-xs font-semibold text-center border border-slate-700"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => { setMobileNavOpen(false); openAuth('login') }}
+                    className="py-2.5 px-3 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs font-bold flex items-center justify-center space-x-1.5 shadow-sm"
+                  >
+                    <span>Sign In</span>
+                  </button>
+                  <button
+                    onClick={() => { setMobileNavOpen(false); openAuth('register') }}
+                    className="py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center justify-center space-x-1.5 shadow-md shadow-blue-600/30"
+                  >
+                    <span>Sign Up</span>
+                  </button>
+                </div>
+
+                {/* 1-Tap Demo Inspector Login */}
+                <button
+                  type="button"
+                  onClick={() => { setMobileNavOpen(false); quickDemoLogin('inspector') }}
+                  className="w-full py-2.5 px-3 rounded-xl bg-indigo-950/60 border border-indigo-800/60 text-indigo-300 text-xs font-bold flex items-center justify-center space-x-2"
+                >
+                  <Zap size={14} className="text-indigo-400" />
+                  <span>⚡ 1-Tap Instant Demo Inspector</span>
+                </button>
+              </div>
+            )}
+
+            {/* Quick Links */}
+            <div className="pt-2 border-t border-slate-800/80 space-y-1">
+              <button
+                onClick={() => { setMobileNavOpen(false); navigate('/analyze') }}
+                className="w-full text-left py-2 px-2.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-900 hover:text-white flex items-center justify-between"
+              >
+                <span>📷 Instant Packaging Scanner</span>
+                <ArrowRight size={13} className="text-slate-500" />
+              </button>
+              <button
+                onClick={() => { setMobileNavOpen(false); navigate('/rules') }}
+                className="w-full text-left py-2 px-2.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-900 hover:text-white flex items-center justify-between"
+              >
+                <span>📜 Legal Metrology PCR 2011 Rules</span>
+                <ArrowRight size={13} className="text-slate-500" />
+              </button>
+            </div>
+
+            {/* Language Switcher */}
+            <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between">
+              <span className="text-xs text-slate-400">Language</span>
+              <LanguageSwitcher />
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Hero Section */}

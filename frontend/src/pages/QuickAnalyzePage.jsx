@@ -6,7 +6,8 @@ import ServerStatusBadge from '../components/ServerStatusBadge'
 import {
   UploadCloud, CheckCircle2, XCircle, AlertTriangle, Sparkles,
   FileText, ShieldCheck, Scale, RefreshCw, Eye, Printer, Download,
-  ExternalLink, ChevronRight, Info, Check, HelpCircle, ArrowRight, Camera
+  ExternalLink, ChevronRight, Info, Check, HelpCircle, ArrowRight, Camera,
+  Menu, LogIn, UserPlus, LogOut, User
 } from 'lucide-react'
 
 // Mandatory Government Legal Metrology PCR 2011 Declarations
@@ -132,6 +133,20 @@ export default function QuickAnalyzePage({ user: propUser }) {
   const [error, setError] = useState('')
   const [activeTab, setActiveTab] = useState('checklist') // 'checklist' | 'ocr' | 'remedies'
   const [isDragOver, setIsDragOver] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  const handleQuickDemoLogin = () => {
+    const mockUser = {
+      id: 2,
+      email: 'inspector@metrology.ai',
+      full_name: 'Demo Inspector',
+      role: 'INSPECTOR'
+    }
+    localStorage.setItem('token', 'demo-instant-token-' + Date.now())
+    localStorage.setItem('user', JSON.stringify(mockUser))
+    setCurrentUser(mockUser)
+    setMobileMenuOpen(false)
+  }
 
   const fileInputRef = useRef(null)
   const cameraInputRef = useRef(null)
@@ -404,7 +419,7 @@ export default function QuickAnalyzePage({ user: propUser }) {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-indigo-500 selection:text-white">
       {/* Top Bar / Header */}
-      <header className="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md sticky top-0 z-30">
+      <header className="border-b border-slate-800/80 bg-slate-900/80 backdrop-blur-md sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center space-x-2 sm:space-x-3 hover:opacity-95 transition">
             <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-blue-600 to-teal-400 flex items-center justify-center shadow-lg shadow-indigo-500/20 shrink-0">
@@ -423,27 +438,27 @@ export default function QuickAnalyzePage({ user: propUser }) {
             </div>
           </Link>
 
-          <div className="flex items-center space-x-1.5 sm:space-x-3">
+          {/* Desktop Navigation (>= 768px) */}
+          <div className="hidden md:flex items-center space-x-3">
             <ServerStatusBadge />
             <LanguageSwitcher />
             <Link
               to="/"
-              className="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold text-indigo-300 hover:text-white bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 transition flex items-center space-x-1"
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold text-indigo-300 hover:text-white bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 transition flex items-center space-x-1"
             >
-              <span className="hidden sm:inline">← Why Compliance Matters</span>
-              <span className="sm:hidden">← Overview</span>
+              <span>← Why Compliance Matters</span>
             </Link>
             {currentUser ? (
-              <div className="flex items-center space-x-1.5 sm:space-x-2">
+              <div className="flex items-center space-x-2">
                 <Link
                   to="/dashboard"
-                  className="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition hidden md:inline-block"
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition"
                 >
                   Dashboard
                 </Link>
                 <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-indigo-950/70 border border-indigo-800/70 text-indigo-200 text-xs">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
-                  <span className="font-medium hidden sm:inline max-w-[130px] truncate">
+                  <span className="font-medium max-w-[130px] truncate">
                     {currentUser.full_name || currentUser.email}
                   </span>
                   <span className="text-[10px] uppercase font-bold text-indigo-300 px-1 py-0.2 bg-indigo-500/20 rounded">
@@ -452,30 +467,171 @@ export default function QuickAnalyzePage({ user: propUser }) {
                 </div>
                 <button
                   onClick={handleLogout}
-                  className="px-2 py-1.5 rounded-lg text-xs text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition"
+                  className="px-2.5 py-1.5 rounded-lg text-xs text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition"
                   title="Sign Out"
                 >
                   Sign Out
                 </button>
               </div>
             ) : (
-              <div className="flex items-center space-x-1.5">
+              <div className="flex items-center space-x-2">
                 <Link
                   to="/login"
-                  className="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 transition shadow-sm"
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 transition shadow-sm"
                 >
                   Sign In
                 </Link>
                 <Link
                   to="/register"
-                  className="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 bg-slate-800 hover:bg-slate-700 transition hidden xs:inline-block"
+                  className="px-3.5 py-1.5 rounded-lg text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 transition shadow-md shadow-indigo-600/30"
                 >
                   Sign Up
                 </Link>
               </div>
             )}
           </div>
+
+          {/* Mobile Action Bar (Always visible on mobile < 768px) */}
+          <div className="flex md:hidden items-center space-x-1.5">
+            {currentUser ? (
+              <>
+                <Link
+                  to="/dashboard"
+                  className="px-2.5 py-1.5 rounded-lg text-xs font-bold text-white bg-indigo-600 transition shadow-sm"
+                >
+                  Dashboard
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="px-2 py-1.5 rounded-lg text-xs text-slate-400 hover:text-rose-400 bg-slate-900 border border-slate-800 transition"
+                >
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-200 bg-slate-900 border border-slate-700 hover:bg-slate-800 active:scale-95 transition"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  to="/register"
+                  className="px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-md shadow-indigo-600/30 active:scale-95 transition"
+                >
+                  Sign Up
+                </Link>
+              </>
+            )}
+
+            {/* Mobile Hamburger Menu Toggle Button */}
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:bg-slate-800 transition ml-0.5"
+              aria-label="Open mobile navigation menu"
+            >
+              <Menu size={18} />
+            </button>
+          </div>
         </div>
+
+        {/* Mobile Slide-Down Drawer Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-slate-800 bg-slate-950 px-4 py-4 space-y-4 animate-in slide-in-from-top-2 duration-150">
+            {/* User status or direct Sign In / Sign Up buttons */}
+            {currentUser ? (
+              <div className="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-slate-400">Signed in as</span>
+                  <span className="text-[10px] uppercase font-bold text-indigo-400 px-1.5 py-0.5 rounded bg-indigo-950 border border-indigo-800/60">
+                    {currentUser.role}
+                  </span>
+                </div>
+                <p className="text-sm font-bold text-white truncate">{currentUser.full_name || currentUser.email}</p>
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  <Link
+                    to="/dashboard"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="py-2 px-3 rounded-lg bg-indigo-600 text-white text-xs font-bold text-center block"
+                  >
+                    Dashboard
+                  </Link>
+                  <button
+                    onClick={() => { setMobileMenuOpen(false); handleLogout() }}
+                    className="py-2 px-3 rounded-lg bg-slate-800 text-rose-300 text-xs font-semibold text-center border border-slate-700"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                <div className="grid grid-cols-2 gap-2">
+                  <Link
+                    to="/login"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="py-2.5 px-3 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs font-bold text-center block shadow-sm"
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    to="/register"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold text-center block shadow-md shadow-indigo-600/30"
+                  >
+                    Sign Up
+                  </Link>
+                </div>
+
+                {/* 1-Tap Demo Inspector Login */}
+                <button
+                  type="button"
+                  onClick={handleQuickDemoLogin}
+                  className="w-full py-2.5 px-3 rounded-xl bg-indigo-950/60 border border-indigo-800/60 text-indigo-300 text-xs font-bold flex items-center justify-center space-x-2"
+                >
+                  <Zap size={14} className="text-indigo-400" />
+                  <span>⚡ 1-Tap Instant Demo Inspector</span>
+                </button>
+              </div>
+            )}
+
+            {/* Quick Navigation Links */}
+            <div className="pt-2 border-t border-slate-800/80 space-y-1">
+              <Link
+                to="/"
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-full text-left py-2 px-2.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-900 hover:text-white flex items-center justify-between"
+              >
+                <span>← Why Compliance Matters (Overview)</span>
+                <ArrowRight size={13} className="text-slate-500" />
+              </Link>
+              <Link
+                to="/rules"
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-full text-left py-2 px-2.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-900 hover:text-white flex items-center justify-between"
+              >
+                <span>📜 Legal Metrology PCR 2011 Rules</span>
+                <ArrowRight size={13} className="text-slate-500" />
+              </Link>
+              <Link
+                to="/inspections"
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-full text-left py-2 px-2.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-900 hover:text-white flex items-center justify-between"
+              >
+                <span>📋 All Inspections & History</span>
+                <ArrowRight size={13} className="text-slate-500" />
+              </Link>
+            </div>
+
+            {/* Language & Server Badges on Mobile */}
+            <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between gap-2">
+              <ServerStatusBadge />
+              <LanguageSwitcher />
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Main Container */}
