@@ -1,15 +1,22 @@
 FROM python:3.11-slim
 
-# Install system dependencies including Tesseract OCR
-RUN apt-get update && apt-get install -y \
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+# Install system dependencies including Tesseract OCR & OpenCV runtime
+# Note: libgl1 replaces deprecated libgl1-mesa-glx in Debian 12 Bookworm
+RUN apt-get update && apt-get install -y --no-install-recommends \
     tesseract-ocr \
     tesseract-ocr-eng \
     tesseract-ocr-hin \
     tesseract-ocr-tam \
     tesseract-ocr-tel \
-    libgl1-mesa-glx \
+    libgl1 \
+    libglx-mesa0 \
     libglib2.0-0 \
     libgomp1 \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app

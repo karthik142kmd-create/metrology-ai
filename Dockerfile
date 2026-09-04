@@ -1,13 +1,19 @@
 FROM python:3.11-slim
 
-# Install system dependencies including Tesseract OCR & OpenCV requirements
-RUN apt-get update && apt-get install -y \
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+# Install system dependencies including Tesseract OCR & OpenCV runtime
+# Note: libgl1 replaces deprecated libgl1-mesa-glx in Debian 12 Bookworm
+RUN apt-get update && apt-get install -y --no-install-recommends \
     tesseract-ocr \
     tesseract-ocr-eng \
     tesseract-ocr-hin \
     tesseract-ocr-tam \
     tesseract-ocr-tel \
-    libgl1-mesa-glx \
+    libgl1 \
+    libglx-mesa0 \
     libglib2.0-0 \
     libgomp1 \
     curl \
@@ -25,7 +31,7 @@ COPY backend/ .
 # Create persistent storage directories
 RUN mkdir -p uploads reports
 
-# Expose default port (Render will dynamically assign PORT env var)
+# Expose default port
 EXPOSE 8000
 
 # Run uvicorn respecting Render's dynamic $PORT or fallback to 8000

@@ -8,7 +8,7 @@ apt-get update -qq && apt-get install -y -qq \
     tesseract-ocr \
     tesseract-ocr-eng \
     tesseract-ocr-hin \
-    libgl1-mesa-glx \
+    libgl1 \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
