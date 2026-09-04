@@ -25,20 +25,91 @@ class OCRProvider(ABC):
 
 
 class TesseractOCRProvider(OCRProvider):
-    """Real Tesseract OCR provider"""
+    """Enhanced Real Tesseract OCR provider with advanced preprocessing and dual-pass extraction"""
     
     def __init__(self):
         try:
             import pytesseract
             self.pytesseract = pytesseract
-            logger.info("Tesseract OCR provider initialized")
-        except ImportError:
-            logger.error("pytesseract not available")
+            
+            # Auto-configure tesseract path if specified or detected
+            if settings.tesseract_path and os.path.exists(settings.tesseract_path):
+                self.pytesseract.pytesseract.tesseract_cmd = settings.tesseract_path
+                logger.info(f"Using configured Tesseract binary at: {settings.tesseract_path}")
+            elif os.name == 'nt':
+                # Check default windows paths
+                default_paths = [
+                    r"C:\Program Files\Tesseract-OCR\tesseract.exe",
+                    r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe",
+                    os.path.expandvars(r"%LOCALAPPDATA%\Programs\Tesseract-OCR\tesseract.exe")
+                ]
+                for p in default_paths:
+                    if os.path.exists(p):
+                        self.pytesseract.pytesseract.tesseract_cmd = p
+                        logger.info(f"Auto-detected Tesseract at: {p}")
+                        break
+
+            # Test invocation to ensure it works
+            _ = self.pytesseract.get_tesseract_version()
+            logger.info("Tesseract OCR provider initialized successfully")
+        except Exception as e:
+            logger.error(f"pytesseract not available or executable failed: {str(e)}")
             raise
+
+    def _preprocess_image(self, image: np.ndarray) -> List[np.ndarray]:
+        """
+        Generate multiple enhanced representations of the label image:
+        1. Grayscale + CLAHE (Contrast-Limited Adaptive Histogram Equalization)
+        2. Bilateral filtered + Adaptive Gaussian thresholding
+        3. Denoised Otsu binarization
+        """
+        preprocessed = []
+        
+        # 1. Grayscale
+        if len(image.shape) == 3:
+            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        else:
+            gray = image.copy()
+            
+        # Optional Deskew
+        try:
+            coords = np.column_stack(np.where(gray < 200))
+            if len(coords) > 50:
+                angle = cv2.minAreaRect(coords)[-1]
+                if angle < -45:
+                    angle = -(90 + angle)
+                elif angle > 45:
+                    angle = 90 - angle
+                if abs(angle) > 0.8 and abs(angle) < 25:
+                    (h, w) = gray.shape[:2]
+                    center = (w // 2, h // 2)
+                    M = cv2.getRotationMatrix2D(center, angle, 1.0)
+                    gray = cv2.warpAffine(gray, M, (w, h), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
+        except Exception as deskew_err:
+            logger.debug(f"Deskew skipped: {deskew_err}")
+
+        # Pass 1: CLAHE enhancement (great for shiny packaging, plastic wraps, uneven lighting)
+        clahe = cv2.createCLAHE(clipLimit=2.5, tileGridSize=(8, 8))
+        enhanced_clahe = clahe.apply(gray)
+        preprocessed.append(enhanced_clahe)
+        
+        # Pass 2: Bilateral filter + Adaptive Threshold
+        denoised = cv2.bilateralFilter(gray, 9, 75, 75)
+        adaptive_thresh = cv2.adaptiveThreshold(
+            denoised, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 25, 11
+        )
+        preprocessed.append(adaptive_thresh)
+        
+        # Pass 3: Otsu thresholding with slight blur
+        blurred = cv2.GaussianBlur(gray, (3, 3), 0)
+        _, otsu = cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        preprocessed.append(otsu)
+        
+        return preprocessed
     
     async def extract_text(self, image_path: str) -> Dict[str, Any]:
         """
-        Extract text using Tesseract OCR
+        Extract text using advanced multi-pass Tesseract OCR
         """
         try:
             if not os.path.exists(image_path):
@@ -49,43 +120,73 @@ class TesseractOCRProvider(OCRProvider):
             if image is None:
                 raise ValueError(f"Could not read image: {image_path}")
             
-            # Preprocess
-            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-            processed = cv2.bilateralFilter(gray, 9, 75, 75)
+            img_height, img_width = image.shape[:2]
+            processed_variants = self._preprocess_image(image)
             
-            # OCR with data
-            data = self.pytesseract.image_to_data(
-                processed,
-                output_type=self.pytesseract.Output.DICT,
-                lang='eng'
+            best_text_blocks = []
+            best_full_text = []
+            max_char_count = 0
+            
+            # Try primary CLAHE pass (PSM 3 - Fully automatic page segmentation)
+            # and fallback to adaptive threshold (PSM 11 - Sparse text find)
+            configs = [
+                r'--oem 3 --psm 3',
+                r'--oem 3 --psm 11',
+                r'--oem 3 --psm 6'
+            ]
+            
+            seen_texts = set()
+            
+            for idx, proc in enumerate(processed_variants):
+                cfg = configs[min(idx, len(configs) - 1)]
+                try:
+                    data = self.pytesseract.image_to_data(
+                        proc,
+                        output_type=self.pytesseract.Output.DICT,
+                        config=cfg,
+                        lang='eng'
+                    )
+                    
+                    current_blocks = []
+                    current_text = []
+                    
+                    for i in range(len(data['text'])):
+                        conf = int(data['conf'][i])
+                        txt = data['text'][i].strip()
+                        if conf > 20 and len(txt) > 0:
+                            current_text.append(txt)
+                            current_blocks.append({
+                                'text': txt,
+                                'confidence': round(conf / 100.0, 2),
+                                'x': int(data['left'][i]),
+                                'y': int(data['top'][i]),
+                                'width': int(data['width'][i]),
+                                'height': int(data['height'][i])
+                            })
+                    
+                    combined_len = len(' '.join(current_text))
+                    if combined_len > max_char_count:
+                        max_char_count = combined_len
+                        best_text_blocks = current_blocks
+                        best_full_text = current_text
+                        
+                except Exception as iter_err:
+                    logger.warning(f"OCR pass {idx} warning: {iter_err}")
+            
+            # If standard pass yielded sparse text, ensure we return clean joined strings
+            full_text_str = ' '.join(best_full_text)
+            
+            overall_confidence = (
+                float(np.mean([b['confidence'] for b in best_text_blocks]))
+                if best_text_blocks else 0.0
             )
             
-            # Extract text and bounding boxes
-            text_blocks = []
-            full_text = []
-            
-            for i in range(len(data['text'])):
-                if int(data['conf'][i]) > 0:  # confidence > 0
-                    text = data['text'][i].strip()
-                    if text:
-                        full_text.append(text)
-                        text_blocks.append({
-                            'text': text,
-                            'confidence': int(data['conf'][i]) / 100.0,
-                            'x': int(data['left'][i]),
-                            'y': int(data['top'][i]),
-                            'width': int(data['width'][i]),
-                            'height': int(data['height'][i])
-                        })
-            
-            overall_confidence = np.mean([b['confidence'] for b in text_blocks]) if text_blocks else 0
-            
             return {
-                'full_text': ' '.join(full_text),
-                'text_blocks': text_blocks,
-                'overall_confidence': overall_confidence,
-                'image_width': image.shape[1],
-                'image_height': image.shape[0]
+                'full_text': full_text_str,
+                'text_blocks': best_text_blocks,
+                'overall_confidence': round(overall_confidence, 3),
+                'image_width': img_width,
+                'image_height': img_height
             }
         
         except Exception as e:

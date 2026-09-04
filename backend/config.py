@@ -31,11 +31,18 @@ class Settings(BaseSettings):
     
     # OCR
     ocr_provider: str = "auto"  # "tesseract", "demo", "auto"
+    tesseract_path: Optional[str] = None
+    
+    # AI Compliance Engine
+    ai_provider: str = "builtin"  # "builtin", "gemini", "openai"
+    ai_api_key: Optional[str] = None
+    ai_model: str = "gemini-1.5-flash"
     
     # Application
     app_name: str = "MetrologyAI"
     app_subtitle: str = "AI-Assisted Packaged Commodity Compliance Inspection"
     debug: bool = False
+    cors_origins: str = "http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://127.0.0.1:3000,*"
     
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=False, extra="allow")
     
@@ -44,6 +51,18 @@ class Settings(BaseSettings):
         # Create necessary directories
         os.makedirs(self.upload_dir, exist_ok=True)
         os.makedirs(self.report_dir, exist_ok=True)
+        
+        # Auto-detect Tesseract binary on Windows if not provided
+        if not self.tesseract_path:
+            win_candidates = [
+                r"C:\Program Files\Tesseract-OCR\tesseract.exe",
+                r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe",
+                os.path.expandvars(r"%LOCALAPPDATA%\Programs\Tesseract-OCR\tesseract.exe")
+            ]
+            for cand in win_candidates:
+                if os.path.exists(cand):
+                    self.tesseract_path = cand
+                    break
 
 
 settings = Settings()

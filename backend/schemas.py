@@ -16,6 +16,14 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class RegisterRequest(BaseModel):
+    """User registration request"""
+    email: EmailStr
+    password: str = Field(..., min_length=6)
+    full_name: str = Field(..., min_length=2)
+    role: Optional[str] = "inspector"
+
+
 class TokenResponse(BaseModel):
     """Token response"""
     access_token: str
@@ -34,6 +42,38 @@ class UserResponse(BaseModel):
     
     class Config:
         from_attributes = True
+
+
+# ==================== AI Compliance Schemas ====================
+
+class AIComplianceRequest(BaseModel):
+    """AI compliance evaluation request"""
+    declarations: Dict[str, Any]
+    category: str
+    product_name: Optional[str] = None
+    ocr_confidence: Optional[float] = None
+    existing_rules: Optional[List[Dict[str, Any]]] = None
+
+
+class AIComplianceRecommendation(BaseModel):
+    """Specific recommendation for label non-compliance"""
+    field: str
+    issue: str
+    recommendation: str
+    legal_reference: str
+    severity: str  # HIGH, MEDIUM, LOW
+
+
+class AIComplianceResponse(BaseModel):
+    """AI compliance response"""
+    status: str
+    ai_compliance_score: float
+    risk_level: str  # LOW, MEDIUM, HIGH, CRITICAL
+    summary: str
+    recommendations: List[Dict[str, Any]]
+    legal_risk_assessment: str
+    penalty_estimate_inr: Optional[str] = None
+    suggested_label_corrections: Dict[str, str]
 
 
 # ==================== Product Schemas ====================

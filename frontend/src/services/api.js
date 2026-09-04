@@ -33,6 +33,7 @@ api.interceptors.response.use(
 
 export const authAPI = {
   login: (email, password) => api.post('/auth/login', { email, password }),
+  register: (data) => api.post('/auth/register', data),
   getCurrentUser: () => api.get('/auth/me'),
 }
 
@@ -74,6 +75,12 @@ export const analysisAPI = {
     api.post('/analysis/extract-declarations', ocrData),
   validate: (extractionResult, category) =>
     api.post('/analysis/validate', { extraction_result: extractionResult, category }),
+  assessAICompliance: (declarations, category, productName) =>
+    api.post('/analysis/ai-compliance', {
+      declarations,
+      category,
+      product_name: productName
+    }),
 }
 
 export const rulesAPI = {

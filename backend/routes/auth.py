@@ -4,8 +4,8 @@ Authentication routes
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from schemas import LoginRequest, TokenResponse, UserResponse
-from models import User
+from schemas import LoginRequest, RegisterRequest, TokenResponse, UserResponse
+from models import User, UserRole
 from database import get_db
 from services.auth_service import AuthService
 from datetime import timedelta
@@ -14,6 +14,55 @@ import logging
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+
+@router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED, tags=["Auth"])
+async def register(request: RegisterRequest, db: Session = Depends(get_db)):
+    """
+    Register a new inspector or admin account
+    """
+    existing_user = db.query(User).filter(User.email == request.email).first()
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email is already registered"
+        )
+    
+    hashed_pwd = AuthService.hash_password(request.password)
+    user_role = UserRole.ADMIN if request.role and request.role.lower() == "admin" else UserRole.INSPECTOR
+    
+    new_user = User(
+        email=request.email,
+        hashed_password=hashed_pwd,
+        full_name=request.full_name,
+        role=user_role,
+        is_active=True
+    )
+    
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    
+    role_str = new_user.role.value if hasattr(new_user.role, 'value') else str(new_user.role)
+    
+    access_token = AuthService.create_access_token(
+        data={
+            "sub": str(new_user.id),
+            "email": new_user.email,
+            "role": role_str
+        }
+    )
+    
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": {
+            "id": new_user.id,
+            "email": new_user.email,
+            "full_name": new_user.full_name,
+            "role": role_str
+        }
+    }
 
 
 @router.post("/login", response_model=TokenResponse, tags=["Auth"])

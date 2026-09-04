@@ -145,3 +145,29 @@ async def validate_declarations(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Validation failed: {str(e)}"
         )
+
+
+@router.post("/ai-compliance")
+async def ai_compliance_assessment(request: dict):
+    """
+    Perform deep AI legal metrology compliance assessment on declarations
+    """
+    from services.ai_compliance_service import AIComplianceService
+    
+    declarations = request.get("declarations", {})
+    category = request.get("category", "General")
+    product_name = request.get("product_name")
+    
+    try:
+        assessment = await AIComplianceService.assess_compliance(
+            declarations=declarations,
+            category=category,
+            product_name=product_name
+        )
+        return assessment
+    except Exception as e:
+        logger.error(f"AI compliance error: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"AI Compliance assessment failed: {str(e)}"
+        )

@@ -280,6 +280,19 @@ async def scan_inspection(
     # Calculate compliance score
     score_data = ComplianceScorer.calculate_score(rule_results)
     
+    # Run AI compliance assessment
+    ai_assessment = None
+    try:
+        from services.ai_compliance_service import AIComplianceService
+        ai_assessment = await AIComplianceService.assess_compliance(
+            declarations=merged_declarations,
+            category=inspection.product.category if inspection.product else "General",
+            product_name=inspection.product.product_name if inspection.product else None,
+            existing_rule_results=rule_results
+        )
+    except Exception as ai_err:
+        logger.warning(f"AI compliance check error during scan: {ai_err}")
+
     inspection.compliance_score = score_data['compliance_score']
     inspection.compliance_result = score_data['compliance_result']
     inspection.total_rules = score_data['total_rules']
@@ -287,7 +300,13 @@ async def scan_inspection(
     inspection.failed_rules = score_data['failed_rules']
     inspection.review_rules = score_data['review_rules']
     inspection.status = InspectionStatus.COMPLETED
-    inspection.extracted_data = merged_declarations
+    
+    # Save both merged declarations and ai assessment
+    extracted_payload = {
+        "declarations": merged_declarations,
+        "ai_assessment": ai_assessment
+    }
+    inspection.extracted_data = extracted_payload
     
     db.commit()
     
@@ -300,7 +319,8 @@ async def scan_inspection(
         "passed_rules": inspection.passed_rules,
         "failed_rules": inspection.failed_rules,
         "review_rules": inspection.review_rules,
-        "violations": len(violations)
+        "violations": len(violations),
+        "ai_assessment": ai_assessment
     }
 
 

@@ -14,18 +14,20 @@ class DeclarationExtractor:
     """Extracts structured declarations from OCR text"""
     
     # Regex patterns
-    MRP_PATTERN = r'(?:MRP|Maximum Retail Price|Price)\s*[:=]?\s*[₹Rs.]*\s*(\d+(?:[.,]\d{2})?)'
-    QUANTITY_PATTERN = r'(\d+(?:[.,]\d+)?)\s*(?:kg|g|ml|l|liter|grams|kilograms|pieces|units|pcs|pc|litre)'
-    DATE_PATTERN = r'(?:MFG|PKD|Manufactured|Packed|Packing Date|Manufacturing Date)\s*[:=]?\s*(\d{1,2}[/-]\d{1,2}[/-]\d{2,4}|\d{2}[/-]\d{4}|[A-Za-z]{3}\s*\d{2,4})'
-    PHONE_PATTERN = r'(?:\+91|0)?(?:\d{10}|\d{3}[-]?\d{3}[-]?\d{4}|1800[-]?\d{3}[-]?\d{4})'
+    MRP_PATTERN = r'(?:MRP|M\.R\.P\.|Maximum Retail Price|Price|Max Price)\s*[:=]?\s*(?:Rs\.?|INR|₹)?\s*(\d+(?:[.,]\d{1,2})?)(?:\s*(?:incl\.?\s*of\s*all\s*taxes|incl\s*taxes))?'
+    QUANTITY_PATTERN = r'(\d+(?:[.,]\d+)?)\s*(?:kg|g|gm|gms|grams|kilograms|ml|m\.l\.|l|ltr|liter|litre|litres|pieces|units|pcs|pc|number|u|n)\b'
+    DATE_PATTERN = r'(?:MFG|PKD|Mfd|Mfg Date|Pkd Date|Manufactured|Packed|Packing Date|Manufacturing Date|Best Before|Use By|EXP|Expiry)\s*[:=]?\s*(\d{1,2}[/-]\d{1,2}[/-]\d{2,4}|\d{2}[/-]\d{4}|[A-Za-z]{3,4}\.?\s*\d{2,4}|\d{2}\s+[A-Za-z]{3,4}\s+\d{2,4})'
+    PHONE_PATTERN = r'(?:\+91|0)?\s*(?:1800[- ]?\d{3}[- ]?\d{4}|\d{3,5}[- ]?\d{6,8}|\d{10})'
     EMAIL_PATTERN = r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
-    COUNTRY_PATTERN = r'(?:Country of Origin|Made in|Manufactured in)\s*[:=]?\s*([A-Za-z\s]+?)(?:\n|$)'
+    COUNTRY_PATTERN = r'(?:Country of Origin|Made in|Manufactured in|Product of)\s*[:=]?\s*([A-Za-z\s]+?)(?:\.|\n|$|,)'
+    FSSAI_PATTERN = r'(?:fssai|lic(?:\.|ense)?\s*no\.?)\s*[:=]?\s*(\d{14})'
+    BATCH_PATTERN = r'(?:Batch(?:\s*No\.?)?|Lot(?:\s*No\.?)?|B\.No\.?)\s*[:=]?\s*([A-Za-z0-9\-_/]+)'
     
     # Keywords
-    MANUFACTURER_KEYWORDS = ['manufacturer', 'mfg', 'manufacturer by', 'made by', 'mfr', 'mfgd by', 'packer', 'packed by', 'importer', 'imported by']
-    ADDRESS_KEYWORDS = ['address', 'location', 'city', 'state', 'country', 'pin', 'postal']
+    MANUFACTURER_KEYWORDS = ['manufacturer', 'manufactured by', 'mfg by', 'mfd by', 'made by', 'mfr', 'mfgd by', 'packer', 'packed by', 'marketed by', 'mktd by', 'importer', 'imported by']
+    ADDRESS_KEYWORDS = ['address', 'location', 'city', 'state', 'country', 'pin', 'postal', 'road', 'street', 'dist', 'taluk', 'plot']
     PRODUCT_NAME_KEYWORDS = ['product', 'brand', 'item', 'commodity', 'name']
-    CONSUMER_CARE_KEYWORDS = ['care', 'customer', 'helpline', 'contact', 'service', 'support', 'phone', 'call']
+    CONSUMER_CARE_KEYWORDS = ['care', 'customer', 'helpline', 'contact', 'service', 'support', 'phone', 'call', 'toll free', 'feedback']
     
     @classmethod
     def extract_all(cls, ocr_result: Dict[str, Any]) -> Dict[str, Any]:
@@ -233,7 +235,7 @@ class DeclarationExtractor:
     
     @classmethod
     def _find_bounding_box(cls, text_blocks: List[Dict], search_text: str) -> Optional[Dict]:
-        """Find bounding box for text in blocks"""
+        """Find bounding box for text in blocks with safe coordinate access"""
         if not text_blocks:
             return None
         
@@ -242,10 +244,10 @@ class DeclarationExtractor:
         for block in text_blocks:
             if search_lower in block.get('text', '').lower():
                 return {
-                    'x': block['x'],
-                    'y': block['y'],
-                    'width': block['width'],
-                    'height': block['height']
+                    'x': block.get('x', 0),
+                    'y': block.get('y', 0),
+                    'width': block.get('width', 0),
+                    'height': block.get('height', 0)
                 }
         
         return None

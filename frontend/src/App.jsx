@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { LanguageProvider } from './context/LanguageContext'
+import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
 import InspectionsPage from './pages/InspectionsPage'
@@ -30,86 +32,92 @@ function App() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-50">
+      <div className="flex items-center justify-center h-screen bg-slate-950 text-white">
         <div className="text-center">
           <div className="animate-spin-slow text-4xl mb-4">⚙️</div>
-          <p className="text-gray-600">Loading MetrologyAI...</p>
+          <p className="text-slate-400 font-semibold text-sm">Loading MetrologyAI...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<LoginPage setUser={setUser} />} />
-        
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute user={user}>
-              <DashboardPage user={user} />
-            </ProtectedRoute>
-          }
-        />
-        
-        <Route
-          path="/inspections"
-          element={
-            <ProtectedRoute user={user}>
-              <InspectionsPage />
-            </ProtectedRoute>
-          }
-        />
-        
-        <Route
-          path="/inspections/new"
-          element={
-            <ProtectedRoute user={user}>
-              <NewInspectionPage />
-            </ProtectedRoute>
-          }
-        />
-        
-        <Route
-          path="/inspections/:id"
-          element={
-            <ProtectedRoute user={user}>
-              <InspectionDetailPage />
-            </ProtectedRoute>
-          }
-        />
-        
-        <Route
-          path="/products"
-          element={
-            <ProtectedRoute user={user}>
-              <ProductsPage />
-            </ProtectedRoute>
-          }
-        />
-        
-        <Route
-          path="/rules"
-          element={
-            <ProtectedRoute user={user}>
-              <RulesPage />
-            </ProtectedRoute>
-          }
-        />
-        
-        <Route
-          path="/settings"
-          element={
-            <ProtectedRoute user={user}>
-              <SettingsPage user={user} setUser={setUser} />
-            </ProtectedRoute>
-          }
-        />
+    <LanguageProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* Public Landing Page */}
+          <Route path="/" element={<LandingPage user={user} setUser={setUser} />} />
+          <Route path="/login" element={<LoginPage setUser={setUser} />} />
 
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </BrowserRouter>
+          {/* Authenticated Application Area */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute user={user}>
+                <DashboardPage user={user} />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/inspections"
+            element={
+              <ProtectedRoute user={user}>
+                <InspectionsPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/inspections/new"
+            element={
+              <ProtectedRoute user={user}>
+                <NewInspectionPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/inspections/:id"
+            element={
+              <ProtectedRoute user={user}>
+                <InspectionDetailPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/products"
+            element={
+              <ProtectedRoute user={user}>
+                <ProductsPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/rules"
+            element={
+              <ProtectedRoute user={user}>
+                <RulesPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute user={user}>
+                <SettingsPage user={user} setUser={setUser} />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Catch-all redirect */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </LanguageProvider>
   )
 }
 
