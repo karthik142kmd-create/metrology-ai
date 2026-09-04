@@ -8,7 +8,7 @@ export function parseErrorMessage(err, fallback = 'Operation failed') {
   // Network / Connection errors
   if (!err.response) {
     if (err.message && err.message.includes('Network Error')) {
-      return 'Cannot connect to backend server. Please verify backend is running at http://localhost:8000.'
+      return 'Cannot connect to backend server. Please check your network connection or tap the Server Status badge.'
     }
     return err.message || fallback
   }
@@ -17,10 +17,10 @@ export function parseErrorMessage(err, fallback = 'Operation failed') {
 
   // Handle specific HTTP error status codes cleanly
   if (status === 405) {
-    return 'Authentication service route issue (HTTP 405 Method Not Allowed). Please ensure the backend server is running at http://localhost:8000.'
+    return 'Backend route method mismatch (HTTP 405). Please verify backend server status.'
   }
   if (status === 404) {
-    return 'Backend endpoint not found (HTTP 404). Please verify backend is running at http://localhost:8000.'
+    return 'Backend endpoint not found (HTTP 404). Please verify backend server status.'
   }
 
   if (!data) {
@@ -31,7 +31,7 @@ export function parseErrorMessage(err, fallback = 'Operation failed') {
   // 1. Plain string error
   if (typeof detail === 'string') {
     if (detail.toLowerCase().includes('method not allowed')) {
-      return 'Authentication endpoint method error. Please check that the backend is running at http://localhost:8000.'
+      return 'Authentication endpoint method error. Please verify backend server status.'
     }
     return detail
   }

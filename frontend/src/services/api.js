@@ -2,45 +2,50 @@ import axios from 'axios'
 
 // Multi-device backend resolution: support LAN IP, cloud, and custom server
 export const getDefaultApiUrl = () => {
-  // 1. User manual override stored in localStorage
   if (typeof window !== 'undefined') {
+    const host = window.location.hostname
+    const isLocalhost = host === 'localhost' || host === '127.0.0.1'
+
+    // 1. User manual override stored in localStorage
     const saved = localStorage.getItem('metrology_api_url')
     if (saved && saved.trim()) {
       const clean = saved.trim().replace(/\/$/, '')
-      return clean.endsWith('/api') ? clean : `${clean}/api`
+      // Only honor localhost overrides if the browser itself is running on localhost
+      if (isLocalhost || (!clean.includes('localhost') && !clean.includes('127.0.0.1'))) {
+        return clean.endsWith('/api') ? clean : `${clean}/api`
+      }
     }
-  }
 
-  // 2. Explicit environment variable
-  if (import.meta.env.VITE_API_BASE_URL) {
-    return import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '')
-  }
-  if (import.meta.env.VITE_API_URL) {
-    const root = import.meta.env.VITE_API_URL.replace(/\/$/, '')
-    return `${root}/api`
-  }
+    // 2. Cloud deployment (Vercel, Netlify, or any public domain)
+    // ALWAYS route to live Render backend
+    if (host.includes('vercel.app') || host.includes('netlify.app') || (!isLocalhost && !/^(\d{1,3}\.){3}\d{1,3}$/.test(host))) {
+      return 'https://metrology-ai.onrender.com/api'
+    }
 
-  // 3. Dynamic browser host detection (for multi-device access on Wi-Fi / LAN or Cloud)
-  if (typeof window !== 'undefined') {
-    const host = window.location.hostname
-    // If accessing from another device via LAN IP (e.g., 192.168.x.x, 10.x.x.x, 172.16-31.x.x)
+    // 3. Multi-device Wi-Fi / LAN IP access (e.g., phone browsing 192.168.0.104:5173)
     const isLanIp = /^(\d{1,3}\.){3}\d{1,3}$/.test(host) && host !== '127.0.0.1'
     if (isLanIp) {
       return `http://${host}:8000/api`
     }
 
-    // If on localhost / loopback, use same-origin /api (proxied by Vite)
-    if (host === 'localhost' || host === '127.0.0.1') {
+    // 4. Localhost / loopback development (use Vite reverse proxy)
+    if (isLocalhost) {
       return '/api'
     }
+  }
 
-    // If deployed on cloud (Vercel / Netlify / custom domain)
-    // Connect directly to live Render backend
-    if (host.includes('vercel.app') || host.includes('netlify.app')) {
-      return 'https://metrology-ai.onrender.com/api'
+  // 5. Environment variable fallbacks (ignore localhost on remote hosts)
+  if (import.meta.env.VITE_API_BASE_URL) {
+    const custom = import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '')
+    if (!custom.includes('localhost') && !custom.includes('127.0.0.1')) {
+      return custom
     }
-
-    return '/api'
+  }
+  if (import.meta.env.VITE_API_URL) {
+    const root = import.meta.env.VITE_API_URL.replace(/\/$/, '')
+    if (!root.includes('localhost') && !root.includes('127.0.0.1')) {
+      return `${root}/api`
+    }
   }
 
   return 'https://metrology-ai.onrender.com/api'
