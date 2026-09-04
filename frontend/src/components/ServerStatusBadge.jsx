@@ -19,7 +19,7 @@ export default function ServerStatusBadge({ className = '' }) {
     {
       id: 'cloud',
       name: 'Cloud Production (Render)',
-      url: 'https://metrologyai-backend.onrender.com/api',
+      url: 'https://metrology-ai.onrender.com/api',
       icon: Cloud,
       desc: 'Accessible from any device, mobile data (4G/5G) or outside Wi-Fi'
     },

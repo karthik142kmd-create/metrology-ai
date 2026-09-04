@@ -35,11 +35,15 @@ export const getDefaultApiUrl = () => {
     }
 
     // If deployed on cloud (Vercel / Netlify / custom domain)
-    // Try same-origin /api (which vercel.json rewrites to Render backend)
+    // Connect directly to live Render backend
+    if (host.includes('vercel.app') || host.includes('netlify.app')) {
+      return 'https://metrology-ai.onrender.com/api'
+    }
+
     return '/api'
   }
 
-  return '/api'
+  return 'https://metrology-ai.onrender.com/api'
 }
 
 let currentBaseUrl = getDefaultApiUrl()
@@ -118,7 +122,7 @@ api.interceptors.response.use(
       if (isLanIp || host === 'localhost' || host === '127.0.0.1') {
         originalRequest.baseURL = `http://${host}:8000/api`
       } else {
-        originalRequest.baseURL = 'https://metrologyai-backend.onrender.com/api'
+        originalRequest.baseURL = 'https://metrology-ai.onrender.com/api'
       }
       try {
         return await axios(originalRequest)
