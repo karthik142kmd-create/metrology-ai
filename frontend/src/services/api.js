@@ -1,25 +1,91 @@
 import axios from 'axios'
 
-const getBaseUrl = () => {
+// Multi-device backend resolution: support LAN IP, cloud, and custom server
+export const getDefaultApiUrl = () => {
+  // 1. User manual override stored in localStorage
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem('metrology_api_url')
+    if (saved && saved.trim()) {
+      const clean = saved.trim().replace(/\/$/, '')
+      return clean.endsWith('/api') ? clean : `${clean}/api`
+    }
+  }
+
+  // 2. Explicit environment variable
   if (import.meta.env.VITE_API_BASE_URL) {
-    return import.meta.env.VITE_API_BASE_URL
+    return import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '')
   }
   if (import.meta.env.VITE_API_URL) {
     const root = import.meta.env.VITE_API_URL.replace(/\/$/, '')
     return `${root}/api`
   }
-  // Use same-origin /api proxy by default in dev & deployment
+
+  // 3. Dynamic browser host detection (for multi-device access on Wi-Fi / LAN or Cloud)
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname
+    // If accessing from another device via LAN IP (e.g., 192.168.x.x, 10.x.x.x, 172.16-31.x.x)
+    const isLanIp = /^(\d{1,3}\.){3}\d{1,3}$/.test(host) && host !== '127.0.0.1'
+    if (isLanIp) {
+      return `http://${host}:8000/api`
+    }
+
+    // If on localhost / loopback, use same-origin /api (proxied by Vite)
+    if (host === 'localhost' || host === '127.0.0.1') {
+      return '/api'
+    }
+
+    // If deployed on cloud (Vercel / Netlify / custom domain)
+    // Try same-origin /api (which vercel.json rewrites to Render backend)
+    return '/api'
+  }
+
   return '/api'
 }
 
-const API_BASE_URL = getBaseUrl()
+let currentBaseUrl = getDefaultApiUrl()
 
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: currentBaseUrl,
   headers: {
     'Content-Type': 'application/json',
   },
 })
+
+// Dynamically change backend URL at runtime (works on any device)
+export const setApiBaseUrl = (newUrl) => {
+  if (!newUrl) return currentBaseUrl
+  const clean = newUrl.trim().replace(/\/$/, '')
+  const full = clean.endsWith('/api') ? clean : `${clean}/api`
+  currentBaseUrl = full
+  api.defaults.baseURL = full
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('metrology_api_url', full)
+  }
+  return full
+}
+
+export const getApiBaseUrl = () => currentBaseUrl
+
+// Ping any backend URL to check health and latency
+export const pingBackend = async (targetUrl) => {
+  const clean = (targetUrl || currentBaseUrl).replace(/\/$/, '')
+  const root = clean.replace(/\/api$/, '')
+  const start = Date.now()
+  try {
+    const res = await axios.get(`${root}/health`, { timeout: 6000 })
+    return {
+      ok: true,
+      latency: Date.now() - start,
+      data: res.data
+    }
+  } catch (err) {
+    return {
+      ok: false,
+      latency: Date.now() - start,
+      error: err.message
+    }
+  }
+}
 
 // Add token to requests
 api.interceptors.request.use((config) => {
@@ -47,8 +113,10 @@ api.interceptors.response.use(
     ) {
       originalRequest._retried = true
       const host = window.location.hostname || 'localhost'
-      if (host === 'localhost' || host === '127.0.0.1') {
-        originalRequest.baseURL = 'http://127.0.0.1:8000/api'
+      const isLanIp = /^(\d{1,3}\.){3}\d{1,3}$/.test(host)
+
+      if (isLanIp || host === 'localhost' || host === '127.0.0.1') {
+        originalRequest.baseURL = `http://${host}:8000/api`
       } else {
         originalRequest.baseURL = 'https://metrologyai-backend.onrender.com/api'
       }

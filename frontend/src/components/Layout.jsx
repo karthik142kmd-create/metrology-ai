@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useLanguage } from '../context/LanguageContext'
 import LanguageSwitcher from './LanguageSwitcher'
+import ServerStatusBadge from './ServerStatusBadge'
 import {
   Menu, X, Search, FileText, Settings,
   LogOut, Bell, ChevronDown, ClipboardList, Scale,
@@ -173,7 +174,10 @@ function Layout({ user, children }) {
           </div>
 
           {/* Right Header Actions */}
-          <div className="flex items-center space-x-2 sm:space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            {/* Multi-Device Server Switcher */}
+            <ServerStatusBadge />
+
             {/* Language Switcher */}
             <LanguageSwitcher />
 

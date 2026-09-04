@@ -4,6 +4,7 @@ import { authAPI } from '../services/api'
 import { parseErrorMessage } from '../utils/errorParser'
 import { useLanguage } from '../context/LanguageContext'
 import LanguageSwitcher from '../components/LanguageSwitcher'
+import ServerStatusBadge from '../components/ServerStatusBadge'
 import { AlertCircle, CheckCircle, Scale, ArrowLeft, ArrowRight, ShieldCheck, LogOut } from 'lucide-react'
 
 function LoginPage({ setUser, initialIsRegister = false }) {
@@ -143,7 +144,7 @@ function LoginPage({ setUser, initialIsRegister = false }) {
       {/* Background glow */}
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-blue-600/15 blur-[120px] rounded-full pointer-events-none" />
 
-      {/* Header bar with Back to Landing & Language Picker */}
+      {/* Header bar with Back to Landing, Server Status & Language Picker */}
       <div className="w-full max-w-md flex items-center justify-between mb-6 z-10">
         <Link
           to="/"
@@ -152,7 +153,10 @@ function LoginPage({ setUser, initialIsRegister = false }) {
           <ArrowLeft size={14} />
           <span>Back to Home</span>
         </Link>
-        <LanguageSwitcher />
+        <div className="flex items-center space-x-2">
+          <ServerStatusBadge />
+          <LanguageSwitcher />
+        </div>
       </div>
 
       <div className="w-full max-w-md z-10">

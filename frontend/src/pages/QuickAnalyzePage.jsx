@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { analysisAPI } from '../services/api'
 import LanguageSwitcher from '../components/LanguageSwitcher'
+import ServerStatusBadge from '../components/ServerStatusBadge'
 import {
   UploadCloud, CheckCircle2, XCircle, AlertTriangle, Sparkles,
   FileText, ShieldCheck, Scale, RefreshCw, Eye, Printer, Download,
@@ -325,6 +326,7 @@ export default function QuickAnalyzePage({ user: propUser }) {
           </Link>
 
           <div className="flex items-center space-x-1.5 sm:space-x-3">
+            <ServerStatusBadge />
             <LanguageSwitcher />
             <Link
               to="/"

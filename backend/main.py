@@ -56,10 +56,11 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# CORS middleware — origins driven by CORS_ORIGINS env var
+# CORS middleware — supports multi-device access (LAN IPs, Wi-Fi devices, Vercel, localhost)
 _cors_origins = [o.strip() for o in settings.cors_origins.split(",") if o.strip()]
 app.add_middleware(
     CORSMiddleware,
+    allow_origin_regex=r".*",
     allow_origins=_cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
