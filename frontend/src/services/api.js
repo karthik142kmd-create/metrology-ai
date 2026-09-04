@@ -81,6 +81,14 @@ export const analysisAPI = {
       category,
       product_name: productName
     }),
+  quickAnalyze: (file, category = 'General') => {
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('category', category)
+    return api.post('/analysis/quick-analyze', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+  },
 }
 
 export const rulesAPI = {

@@ -26,8 +26,9 @@ function Layout({ user, children }) {
     return location.pathname === path || location.pathname.startsWith(path + '/')
   }
 
-  // Simplified nav — no Dashboard button, no Products
+  // Nav items including direct Quick Label Audit
   const navItems = [
+    { path: '/', icon: Scale, label: 'Quick Label Audit' },
     { path: '/inspections', icon: ClipboardList, label: t('inspections') || 'My Scans' },
     { path: '/inspections/new', icon: ScanLine, label: t('newInspection') || 'New Scan' },
     { path: '/rules', icon: FileText, label: t('rules') || 'Compliance Rules' },

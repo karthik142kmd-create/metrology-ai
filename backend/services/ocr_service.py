@@ -173,8 +173,13 @@ class TesseractOCRProvider(OCRProvider):
                 except Exception as iter_err:
                     logger.warning(f"OCR pass {idx} warning: {iter_err}")
             
-            # If standard pass yielded sparse text, ensure we return clean joined strings
-            full_text_str = ' '.join(best_full_text)
+            # Extract natural line breaks using image_to_string
+            try:
+                natural_text = self.pytesseract.image_to_string(image, lang='eng').strip()
+            except Exception:
+                natural_text = ''
+            
+            full_text_str = natural_text if len(natural_text) > 20 else ' '.join(best_full_text)
             
             overall_confidence = (
                 float(np.mean([b['confidence'] for b in best_text_blocks]))

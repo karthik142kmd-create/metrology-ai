@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     # File uploads
     upload_dir: str = "uploads"
     max_upload_size_mb: int = 10
-    allowed_extensions: Tuple[str, ...] = ("jpg", "jpeg", "png", "gif")
+    allowed_extensions: Tuple[str, ...] = ("jpg", "jpeg", "png", "gif", "webp", "bmp")
     
     # Reports
     report_dir: str = "reports"

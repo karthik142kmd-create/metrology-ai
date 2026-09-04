@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { LanguageProvider } from './context/LanguageContext'
+import QuickAnalyzePage from './pages/QuickAnalyzePage'
 import LandingPage from './pages/LandingPage'
 import DashboardPage from './pages/DashboardPage'
 import InspectionsPage from './pages/InspectionsPage'
@@ -43,15 +44,12 @@ function App() {
     <LanguageProvider>
       <BrowserRouter>
         <Routes>
-          {/* Public Landing Page — if user is already logged in, redirect straight to dashboard */}
-          <Route
-            path="/"
-            element={
-              user
-                ? <Navigate to="/dashboard" replace />
-                : <LandingPage user={user} setUser={setUser} />
-            }
-          />
+          {/* Main Quick Image Upload & Government Compliance Rate Analyzer */}
+          <Route path="/" element={<QuickAnalyzePage />} />
+          <Route path="/analyze" element={<QuickAnalyzePage />} />
+
+          {/* Landing / Marketing Showcase */}
+          <Route path="/landing" element={<LandingPage user={user} setUser={setUser} />} />
 
           {/* Authenticated Application Area */}
           <Route

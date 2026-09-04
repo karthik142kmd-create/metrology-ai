@@ -120,32 +120,38 @@ class RuleValidator:
 
 
 class ComplianceScorer:
-    """Calculates compliance score from rule results"""
+    """Calculates compliance score and percentage rate from rule results"""
     
     @staticmethod
     def calculate_score(rule_results: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
-        Calculate compliance score from rule results
+        Calculate compliance score and compliance rate from rule results
         
         Returns:
             {
                 'compliance_score': float (0-100),
+                'compliance_rate': float (0-100),
                 'compliance_result': 'PASS' | 'FAIL' | 'REVIEW',
                 'total_rules': int,
                 'passed_rules': int,
                 'failed_rules': int,
-                'review_rules': int
+                'review_rules': int,
+                'earned_points': int,
+                'total_points': int
             }
         """
         
         if not rule_results:
             return {
                 'compliance_score': 0.0,
+                'compliance_rate': 0.0,
                 'compliance_result': 'REVIEW',
                 'total_rules': 0,
                 'passed_rules': 0,
                 'failed_rules': 0,
-                'review_rules': 0
+                'review_rules': 0,
+                'earned_points': 0,
+                'total_points': 0
             }
         
         total = len(rule_results)
@@ -153,152 +159,162 @@ class ComplianceScorer:
         failed = sum(1 for r in rule_results if r['status'] == RuleStatus.FAIL)
         review = sum(1 for r in rule_results if r['status'] == RuleStatus.REVIEW)
         
-        # Calculate score (0-100)
-        # All pass = 100
-        # Some review = 70-85
-        # Some fail = 30-70
+        total_points = sum(r.get('points', 10) for r in rule_results)
+        earned_points = sum(
+            r.get('points', 10) if r['status'] == RuleStatus.PASS
+            else (r.get('points', 10) * 0.5 if r['status'] == RuleStatus.REVIEW else 0)
+            for r in rule_results
+        )
+        
+        compliance_rate = round((earned_points / total_points * 100) if total_points > 0 else 0, 1)
+        
+        # Result determination
         if failed > 0:
-            compliance_score = max(30, (passed / total) * 100)
             compliance_result = 'FAIL'
         elif review > 0:
-            compliance_score = min(85, (passed / total) * 100 + (review / total) * 40)
             compliance_result = 'REVIEW'
         else:
-            compliance_score = 100.0
             compliance_result = 'PASS'
         
         return {
-            'compliance_score': round(compliance_score, 1),
+            'compliance_score': compliance_rate,
+            'compliance_rate': compliance_rate,
             'compliance_result': compliance_result,
             'total_rules': total,
             'passed_rules': passed,
             'failed_rules': failed,
-            'review_rules': review
+            'review_rules': review,
+            'earned_points': round(earned_points, 1),
+            'total_points': total_points
         }
 
 
 def get_default_rules() -> List[Dict[str, Any]]:
     """
-    Get default compliance rules for MVP
+    Get default compliance rules under Legal Metrology (Packaged Commodities) Rules 2011
     """
+    all_categories = ['Food', 'Beverage', 'Cosmetic', 'Household', 'Electronic', 'General', 'Pharmaceutical', 'Other']
+    
     return [
         {
             'rule_id': 'LM-MRP-001',
-            'name': 'MRP Declaration',
-            'description': 'Maximum Retail Price should be clearly declared',
+            'name': 'Maximum Retail Price (MRP)',
+            'description': 'Maximum Retail Price inclusive of all taxes must be clearly declared with currency symbol (₹ / Rs.)',
             'field': 'mrp',
             'mandatory': True,
+            'legal_reference': 'Rule 6(1)(e), LM(PC) Rules 2011',
+            'penalty_info': 'Penalty up to ₹25,000 under Section 36(1) of Legal Metrology Act 2009',
             'validation_type': 'exists',
             'severity': 'HIGH',
             'points': 20,
-            'categories': ['Food', 'Beverage', 'Cosmetic', 'Household', 'Electronic'],
+            'categories': all_categories,
             'version': '2011',
             'enabled': True
         },
         {
             'rule_id': 'LM-NQ-001',
             'name': 'Net Quantity Declaration',
-            'description': 'Net quantity/weight/volume should be declared in metric units',
+            'description': 'Net weight/volume/units must be declared in standard SI metric units (g, kg, ml, l, pcs)',
             'field': 'net_quantity',
             'mandatory': True,
+            'legal_reference': 'Rule 6(1)(c) & Second Schedule, LM(PC) Rules 2011',
+            'penalty_info': 'Penalty up to ₹20,000 under Section 30 of Legal Metrology Act 2009',
             'validation_type': 'pattern',
-            'validation_pattern': r'\d+\s*(?:kg|g|ml|l|pieces)',
+            'validation_pattern': r'\d+(?:[.,]\d+)?\s*(?:kg|g|gm|gms|ml|l|ltr|liter|litre|litres|pcs|pieces|units|pc|u|n)\b',
             'severity': 'HIGH',
             'points': 20,
-            'categories': ['Food', 'Beverage', 'Cosmetic', 'Household', 'Electronic'],
+            'categories': all_categories,
             'version': '2011',
             'enabled': True
         },
         {
             'rule_id': 'LM-MFG-001',
-            'name': 'Manufacturer/Packer Details',
-            'description': 'Name and address of manufacturer/packer/importer should be declared',
+            'name': 'Manufacturer / Packer / Importer Name',
+            'description': 'Name of manufacturer, packer, or importer must be prominently printed on the label',
             'field': 'manufacturer',
             'mandatory': True,
+            'legal_reference': 'Rule 6(1)(a), LM(PC) Rules 2011',
+            'penalty_info': 'Fine up to ₹25,000 for misdeclaration under Section 36',
             'validation_type': 'exists',
             'severity': 'HIGH',
-            'points': 20,
-            'categories': ['Food', 'Beverage', 'Cosmetic', 'Household', 'Electronic'],
+            'points': 15,
+            'categories': all_categories,
             'version': '2011',
             'enabled': True
         },
         {
             'rule_id': 'LM-ADDR-001',
-            'name': 'Address Declaration',
-            'description': 'Complete address including city/town and state should be declared',
+            'name': 'Complete Postal Address',
+            'description': 'Complete address including city, state, or PIN code where entity can be contacted',
             'field': 'address',
             'mandatory': True,
+            'legal_reference': 'Rule 6(1)(a), LM(PC) Rules 2011',
+            'penalty_info': 'Procedural violation fine up to ₹10,000 under LM Rules',
             'validation_type': 'exists',
             'severity': 'HIGH',
             'points': 15,
-            'categories': ['Food', 'Beverage', 'Cosmetic', 'Household', 'Electronic'],
+            'categories': all_categories,
             'version': '2011',
             'enabled': True
         },
         {
             'rule_id': 'LM-DATE-001',
-            'name': 'Date Declaration',
-            'description': 'Manufacturing/Packing/Expiry date should be declared where applicable',
+            'name': 'Date of Manufacture / Packing',
+            'description': 'Month and year of manufacture or packaging must be declared (e.g., 08/2026 or Aug 2026)',
             'field': 'date',
             'mandatory': True,
+            'legal_reference': 'Rule 6(1)(d), LM(PC) Rules 2011',
+            'penalty_info': 'Packaging violation fine up to ₹25,000; sale prohibited after expiry',
             'validation_type': 'exists',
             'severity': 'MEDIUM',
-            'points': 15,
-            'categories': ['Food', 'Beverage', 'Cosmetic', 'Household'],
+            'points': 10,
+            'categories': all_categories,
             'version': '2011',
             'enabled': True
         },
         {
             'rule_id': 'LM-CARE-001',
-            'name': 'Consumer Care Information',
-            'description': 'Phone number or email for consumer care should be declared',
+            'name': 'Consumer Care / Helpline',
+            'description': 'Toll-free telephone number or email address for consumer complaints must be declared',
             'field': 'consumer_care',
             'mandatory': True,
+            'legal_reference': 'Rule 6(1)(f), LM(PC) Rules 2011',
+            'penalty_info': 'Fine up to ₹25,000 under Rule 32 of LM(PC) Rules',
             'validation_type': 'exists',
             'severity': 'MEDIUM',
             'points': 10,
-            'categories': ['Food', 'Beverage', 'Cosmetic', 'Household', 'Electronic'],
+            'categories': all_categories,
             'version': '2011',
             'enabled': True
         },
         {
             'rule_id': 'LM-COO-001',
             'name': 'Country of Origin',
-            'description': 'Country of origin should be declared where applicable',
+            'description': 'Country of origin must be declared on all pre-packaged commodities (e.g., Made in India)',
             'field': 'country_of_origin',
-            'mandatory': False,
+            'mandatory': True,
+            'legal_reference': 'Rule 6(1)(a) Amendment 2017/2020',
+            'penalty_info': 'Non-declaration violation; fine up to ₹50,000 and customs hold',
             'validation_type': 'exists',
-            'severity': 'LOW',
+            'severity': 'MEDIUM',
             'points': 5,
-            'categories': ['Food', 'Beverage', 'Cosmetic', 'Electronic'],
+            'categories': all_categories,
             'version': '2011',
             'enabled': True
         },
         {
             'rule_id': 'LM-PROD-001',
-            'name': 'Product Name Declaration',
-            'description': 'Name/description of the product should be clearly declared',
+            'name': 'Common / Generic Commodity Name',
+            'description': 'Generic name or description of the commodity contained in the package',
             'field': 'product_name',
             'mandatory': True,
+            'legal_reference': 'Rule 6(1)(b), LM(PC) Rules 2011',
+            'penalty_info': 'Fine up to ₹15,000 for non-disclosure of commodity generic name',
             'validation_type': 'exists',
             'severity': 'MEDIUM',
-            'points': 10,
-            'categories': ['Food', 'Beverage', 'Cosmetic', 'Household', 'Electronic'],
+            'points': 5,
+            'categories': all_categories,
             'version': '2011',
             'enabled': True
-        },
-        {
-            'rule_id': 'LM-OCR-001',
-            'name': 'Text Readability',
-            'description': 'Declarations should have minimum OCR confidence for readability',
-            'field': 'ocr_confidence',
-            'mandatory': True,
-            'validation_type': 'pattern',
-            'validation_pattern': r'0\.[789]\d|1\.0',
-            'severity': 'LOW',
-            'points': 5,
-            'categories': ['Food', 'Beverage', 'Cosmetic', 'Household', 'Electronic'],
-            'version': '2011',
-            'enabled': False
         }
     ]
