@@ -16,27 +16,49 @@ logger = logging.getLogger(__name__)
 
 
 def seed_initial_data():
-    """Seed database with initial data"""
+    """Seed database with initial data and guarantee all demo accounts exist"""
     db = SessionLocal()
     
     try:
-        # Check if data already seeded
-        user_count = db.query(User).count()
-        if user_count > 0:
-            logger.info("Database already seeded")
+        # Guarantee demo accounts exist with active status
+        demo_accounts = [
+            ("inspector@metrology.ai", "Demo Inspector", "inspector123", UserRole.INSPECTOR),
+            ("admin@metrology.ai", "Demo Officer / Admin", "admin123", UserRole.ADMIN),
+            ("consumer@metrology.ai", "Demo Consumer", "consumer123", UserRole.CONSUMER),
+        ]
+        
+        inspector_user = None
+        for email, full_name, password, role in demo_accounts:
+            user = db.query(User).filter(User.email == email).first()
+            if not user:
+                user = User(
+                    email=email,
+                    full_name=full_name,
+                    hashed_password=AuthService.hash_password(password),
+                    role=role,
+                    is_active=True
+                )
+                db.add(user)
+                db.flush()
+                logger.info(f"Created demo account: {email}")
+            else:
+                user.hashed_password = AuthService.hash_password(password)
+                user.is_active = True
+                user.role = role
+                db.flush()
+            
+            if role == UserRole.INSPECTOR or not inspector_user:
+                inspector_user = user
+                
+        db.commit()
+
+        # Check if products already exist
+        product_count = db.query(Product).count()
+        if product_count > 0:
+            logger.info("Products and rules already seeded")
             return
         
-        # Create demo consumer user (single user type: packaged commodity consumer)
-        consumer = User(
-            email="consumer@metrology.ai",
-            full_name="Demo Consumer",
-            hashed_password=AuthService.hash_password("consumer123"),
-            role=UserRole.CONSUMER,
-            is_active=True
-        )
-        db.add(consumer)
-        db.flush()
-        inspector = consumer  # alias so inspection seeding below still works
+        inspector = inspector_user
         
         # Create sample products
         products_data = [

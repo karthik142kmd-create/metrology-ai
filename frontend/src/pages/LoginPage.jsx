@@ -53,17 +53,32 @@ function LoginPage({ setUser, initialIsRegister = false }) {
     }
   }
 
-  const fillDemoCredentials = (roleType) => {
+  const fillDemoCredentials = async (roleType) => {
     setIsRegister(false)
-    if (roleType === 'admin') {
-      setEmail('admin@metrology.ai')
-      setPassword('admin123')
-    } else if (roleType === 'consumer') {
-      setEmail('consumer@metrology.ai')
-      setPassword('consumer123')
-    } else {
-      setEmail('inspector@metrology.ai')
-      setPassword('inspector123')
+    setError('')
+    setLoading(true)
+    const creds = {
+      inspector: { email: 'inspector@metrology.ai', pass: 'inspector123' },
+      admin: { email: 'admin@metrology.ai', pass: 'admin123' },
+      consumer: { email: 'consumer@metrology.ai', pass: 'consumer123' },
+    }[roleType]
+
+    setEmail(creds.email)
+    setPassword(creds.pass)
+
+    try {
+      const response = await authAPI.login(creds.email, creds.pass)
+      const { access_token, user } = response.data
+
+      localStorage.setItem('token', access_token)
+      localStorage.setItem('user', JSON.stringify(user))
+
+      setUser(user)
+      navigate('/analyze')
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Demo login failed')
+    } finally {
+      setLoading(false)
     }
   }
 
