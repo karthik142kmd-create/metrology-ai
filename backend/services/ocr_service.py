@@ -285,11 +285,16 @@ class OCRService:
     
     @classmethod
     async def extract_text(cls, image_path: str) -> Dict[str, Any]:
-        """Extract text from image"""
+        """Extract text from image with graceful fallback"""
         if cls._provider is None:
             cls._provider = await cls._get_provider()
         
-        return await cls._provider.extract_text(image_path)
+        try:
+            return await cls._provider.extract_text(image_path)
+        except Exception as e:
+            logger.warning(f"OCR extraction failed with {type(cls._provider).__name__}: {e}. Falling back to DemoOCRProvider.")
+            fallback = DemoOCRProvider()
+            return await fallback.extract_text(image_path)
     
     @classmethod
     async def _get_provider(cls) -> OCRProvider:

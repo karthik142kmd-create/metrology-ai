@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { analysisAPI } from '../services/api'
+import LanguageSwitcher from '../components/LanguageSwitcher'
 import {
   UploadCloud, CheckCircle2, XCircle, AlertTriangle, Sparkles,
   FileText, ShieldCheck, Scale, RefreshCw, Eye, Printer, Download,
@@ -171,10 +172,16 @@ export default function QuickAnalyzePage() {
       setProgressStep('')
     } catch (err) {
       console.error('Analysis error:', err)
-      setError(
-        err.response?.data?.detail ||
-        'Image analysis failed. Please ensure the image is clear and contains visible text.'
-      )
+      if (!err.response) {
+        setError(
+          'Cannot connect to the analysis backend server. Please verify the backend is running at http://localhost:8000 (run: uvicorn main:app in backend).'
+        )
+      } else {
+        setError(
+          err.response?.data?.detail ||
+          'Image analysis failed. Please ensure the image is clear and contains visible text.'
+        )
+      }
     } finally {
       setAnalyzing(false)
       setProgressStep('')
@@ -247,6 +254,7 @@ export default function QuickAnalyzePage() {
           </Link>
 
           <div className="flex items-center space-x-2 sm:space-x-3">
+            <LanguageSwitcher />
             <Link
               to="/"
               className="px-3 py-1.5 rounded-lg text-xs font-semibold text-indigo-300 hover:text-white bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 transition flex items-center space-x-1"

@@ -30,7 +30,7 @@ function LoginPage({ setUser, initialIsRegister = false }) {
         localStorage.setItem('user', JSON.stringify(user))
 
         setUser(user)
-        navigate('/dashboard')
+        navigate('/analyze')
       } else {
         const response = await authAPI.register({
           email,
@@ -44,7 +44,7 @@ function LoginPage({ setUser, initialIsRegister = false }) {
         localStorage.setItem('user', JSON.stringify(user))
 
         setUser(user)
-        navigate('/dashboard')
+        navigate('/analyze')
       }
     } catch (err) {
       setError(err.response?.data?.detail || (isRegister ? 'Registration failed' : 'Login failed'))
@@ -238,17 +238,6 @@ function LoginPage({ setUser, initialIsRegister = false }) {
               </div>
             </div>
           )}
-
-          {/* Direct Scanner Link */}
-          <div className="mt-6 pt-5 border-t border-slate-800 text-center">
-            <Link
-              to="/analyze"
-              className="inline-flex items-center space-x-2 text-xs font-semibold text-blue-400 hover:text-blue-300 transition py-1 px-2 rounded-lg hover:bg-blue-500/10"
-            >
-              <span>🚀 Or Launch Instant Scanner (No Login Required)</span>
-              <ArrowRight size={13} />
-            </Link>
-          </div>
         </div>
 
         {/* Feature Pills */}

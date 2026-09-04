@@ -88,7 +88,30 @@ export const translations = {
     // Status badges
     pass: 'PASS',
     fail: 'FAIL',
-    review: 'REVIEW'
+    review: 'REVIEW',
+    
+    // Additional Landing Page Keys
+    openScanner: 'Open Compliance Scanner',
+    signInToScan: 'Sign In to Launch Scanner',
+    whyComplianceMatters: 'Why Legal Metrology Matters',
+    whyMattersSubtitle: 'Essential for consumer protection, fair commerce, and corporate legal safety.',
+    consumerProtectionTitle: 'Consumer Protection',
+    consumerProtectionDesc: 'Guarantees accurate weight, transparent all-inclusive pricing (MRP), and accessible grievance channels. Prevents dual-pricing and short-measurement fraud.',
+    avoidFinesTitle: 'Avoid Heavy Fines & Summons',
+    avoidFinesDesc: 'Under Section 36 and 49 of the LM Act 2009, label violations attract penalties up to ₹1,00,000, lot seizures, e-commerce delisting, and personal summons for directors.',
+    automateQATitle: 'Automate QA in Seconds',
+    automateQADesc: 'Replace slow, error-prone 20-minute manual checklists with instantaneous AI verification. Generate certified PDF inspection reports ready for audit filing.',
+    eightMandatesTitle: 'The 8 Mandatory Label Declarations',
+    eightMandatesSubtitle: 'Every pre-packaged commodity in India must declare these under Rule 6(1) of PCR 2011.',
+    auditSpeed: 'Audit Speed',
+    ocrAccuracy: 'OCR Accuracy',
+    pcrRules: 'PCR 2011 Rules',
+    sampleSimulation: 'Sample Simulation:',
+    testSimulation: 'Test Simulation',
+    detectedLabelText: 'Detected Label Text',
+    complianceStatus: 'Compliance Status',
+    haveImagePrompt: 'Have an image of your actual packaging?',
+    uploadToScanner: 'Sign in to upload to Scanner'
   },
   hi: {
     // Brand & Topbar
@@ -176,7 +199,30 @@ export const translations = {
     
     pass: 'उत्तीर्ण (PASS)',
     fail: 'विफल (FAIL)',
-    review: 'समीक्षा (REVIEW)'
+    review: 'समीक्षा (REVIEW)',
+    
+    // Additional Landing Page Keys
+    openScanner: 'अनुपालन स्कैनर खोलें',
+    signInToScan: 'स्कैनर शुरू करने के लिए साइन इन करें',
+    whyComplianceMatters: 'विधिक मापविज्ञान क्यों आवश्यक है',
+    whyMattersSubtitle: 'उपभोक्ता संरक्षण, निष्पक्ष व्यापार और कॉर्पोरेट कानूनी सुरक्षा के लिए अनिवार्य।',
+    consumerProtectionTitle: 'उपभोक्ता संरक्षण',
+    consumerProtectionDesc: 'सटीक वजन, पारदर्शी एमआरपी और शिकायत निवारण की गारंटी। दोहरे मूल्य निर्धारण और कम माप की धोखाधड़ी को रोकता है।',
+    avoidFinesTitle: 'भारी जुर्माने और समन से बचाव',
+    avoidFinesDesc: 'विधिक मापविज्ञान अधिनियम की धारा 36 एवं 49 के तहत, पैकेजिंग उल्लंघन पर ₹1,00,000 तक जुर्माना, जब्ती और निदेशकों पर कानूनी समन लग सकता है।',
+    automateQATitle: 'सेकंडों में गुणवत्ता आश्वासन स्वचालित करें',
+    automateQADesc: 'धीमी, त्रुटिपूर्ण 20-मिनट की मैन्युअल जांच को तुरंत एआई सत्यापन से बदलें और प्रमाणित पीडीएफ रिपोर्ट तैयार करें।',
+    eightMandatesTitle: '8 अनिवार्य लेबल घोषणाएं',
+    eightMandatesSubtitle: 'भारत में प्रत्येक पैकेज्ड वस्तु पर नियम 6(1) के तहत ये घोषणाएं होना अनिवार्य है।',
+    auditSpeed: 'ऑडिट गति',
+    ocrAccuracy: 'ओसीआर सटीकता',
+    pcrRules: 'पीसीआर 2011 नियम',
+    sampleSimulation: 'नमूना सिमुलेशन:',
+    testSimulation: 'सिमुलेशन परीक्षण करें',
+    detectedLabelText: 'पहचाना गया लेबल टेक्स्ट',
+    complianceStatus: 'अनुपालन स्थिति',
+    haveImagePrompt: 'क्या आपके पास वास्तविक पैकेजिंग की छवि है?',
+    uploadToScanner: 'स्कैनर में अपलोड करने हेतु साइन इन करें'
   },
   mr: {
     appName: 'मेट्रोलॉजी एआय',
@@ -250,7 +296,30 @@ export const translations = {
     ruleChecklist: 'नियम यादी',
     pass: 'उत्तीर्ण',
     fail: 'अयशस्वी',
-    review: 'पुनरावलोकन'
+    review: 'पुनरावलोकन',
+    
+    // Additional Landing Page Keys
+    openScanner: 'अनुपालन स्कॅनर उघडा',
+    signInToScan: 'स्कॅनर सुरू करण्यासाठी साइन इन करा',
+    whyComplianceMatters: 'कायदेशीर वजन व मापे का महत्त्वाची आहेत',
+    whyMattersSubtitle: 'ग्राहक संरक्षण, निष्पक्ष व्यापार आणि कायदेशीर सुरक्षिततेसाठी आवश्यक.',
+    consumerProtectionTitle: 'ग्राहक संरक्षण',
+    consumerProtectionDesc: 'अचूक वजन, पारदर्शक किंमत (एमआरपी) आणि तक्रार निवारण हमी. फसवणूक टाळते.',
+    avoidFinesTitle: 'मोठा दंड आणि न्यायालयाच्या समन्सपासून संरक्षण',
+    avoidFinesDesc: 'कलम 36 आणि 49 अंतर्गत उल्लंघनावर ₹1,00,000 पर्यंत दंड, माल जप्ती आणि संचालकांवर कायदेशीर कारवाई होऊ शकते.',
+    automateQATitle: 'सेकंदांत गुणवत्ता तपासणी स्वयंचलित करा',
+    automateQADesc: 'कंटाळवाण्या मॅन्युअल तपासणी ऐवजी त्वरित एआय द्वारे तपासणी करा आणि प्रमाणित पीडीएफ अहवाल मिळवा.',
+    eightMandatesTitle: '8 अनिवार्य लेबल घोषणा',
+    eightMandatesSubtitle: 'भारतातील प्रत्येक पॅकेज केलेल्या वस्तूवर नियम 6(1) अंतर्गत या घोषणा असणे बंधनकारक आहे.',
+    auditSpeed: 'तपासणी गती',
+    ocrAccuracy: 'ओसीआर अचूकता',
+    pcrRules: 'पीसीआर 2011 नियम',
+    sampleSimulation: 'नमुना सिम्युलेशन:',
+    testSimulation: 'सिम्युलेशन तपासा',
+    detectedLabelText: 'ओळखलेला लेबल मजकूर',
+    complianceStatus: 'अनुपालन स्थिती',
+    haveImagePrompt: 'आपल्याकडे मूळ पॅकेजिंगची प्रतिमा आहे का?',
+    uploadToScanner: 'स्कॅनरमध्ये अपलोड करण्यासाठी साइन इन करा'
   },
   ta: {
     appName: 'மெட்ராலஜி AI',
@@ -324,7 +393,30 @@ export const translations = {
     ruleChecklist: 'விதிகள் சரிபார்ப்புப் பட்டியல்',
     pass: 'தேர்ச்சி',
     fail: 'தோல்வி',
-    review: 'மறுஆய்வு'
+    review: 'மறுஆய்வு',
+    
+    // Additional Landing Page Keys
+    openScanner: 'இணக்க ஸ்கேனரைத் திறக்கவும்',
+    signInToScan: 'ஸ்கேனரைத் தொடங்க உள்நுழையவும்',
+    whyComplianceMatters: 'சட்ட அளவையியல் ஏன் முக்கியமானது',
+    whyMattersSubtitle: 'நுகர்வோர் பாதுகாப்பு, நியாயமான வணிகம் மற்றும் சட்ட பாதுகாப்பிற்கு அவசியம்.',
+    consumerProtectionTitle: 'நுகர்வோர் பாதுகாப்பு',
+    consumerProtectionDesc: 'துல்லியமான எடை, வெளிப்படையான விலை (MRP) மற்றும் நுகர்வோர் குறைதீர்ப்பு வழிகளை உறுதி செய்கிறது.',
+    avoidFinesTitle: 'கடும் அபராதங்கள் மற்றும் நீதிமன்ற சம்மன்களைத் தவிர்க்கவும்',
+    avoidFinesDesc: 'சட்டப்பிரிவு 36 & 49-ன் கீழ் விதிகளை மீறினால் ₹1,00,000 வரை அபராதம், சரக்கு பறிமுதல் மற்றும் இயக்குநர்களுக்கு சம்மன் வரலாம்.',
+    automateQATitle: 'வினாடிகளில் தரக்கட்டுப்பாட்டை தானியங்குபடுத்துங்கள்',
+    automateQADesc: '20 நிமிட கையேடு சரிபார்ப்புக்குப் பதிலாக உடனடி AI சரிபார்ப்பைப் பயன்படுத்தி சான்றளிக்கப்பட்ட PDF அறிக்கைகளைப் பெறுங்கள்.',
+    eightMandatesTitle: 'கட்டாயமான 8 லேபிள் அறிவிப்புகள்',
+    eightMandatesSubtitle: 'இந்தியாவில் உள்ள ஒவ்வொரு பேக் செய்யப்பட்ட பொருளுக்கும் விதி 6(1)-ன் கீழ் இவை கட்டாயமாகும்.',
+    auditSpeed: 'தணிக்கை வேகம்',
+    ocrAccuracy: 'OCR துல்லியம்',
+    pcrRules: 'PCR 2011 விதிகள்',
+    sampleSimulation: 'மாதிரி உருவகப்படுத்துதல்:',
+    testSimulation: 'உருவகப்படுத்துதல் சோதனை',
+    detectedLabelText: 'கண்டறியப்பட்ட உரை',
+    complianceStatus: 'இணக்க நிலை',
+    haveImagePrompt: 'உங்களிடம் உண்மையான பேக்கேஜிங் படம் உள்ளதா?',
+    uploadToScanner: 'ஸ்கேனரில் பதிவேற்ற உள்நுழையவும்'
   },
   te: {
     appName: 'మెట్రాలజీ AI',
@@ -398,7 +490,30 @@ export const translations = {
     ruleChecklist: 'నిబంధనల జాబితా',
     pass: 'పాస్',
     fail: 'ఫెయిల్',
-    review: 'సమీక్ష'
+    review: 'సమీక్ష',
+    
+    // Additional Landing Page Keys
+    openScanner: 'కంప్లైయన్స్ స్కానర్‌ను తెరవండి',
+    signInToScan: 'స్కానర్‌ను ప్రారంభించడానికి సైన్ ఇన్ చేయండి',
+    whyComplianceMatters: 'చట్టపరమైన కొలతల శాస్త్రం ఎందుకు ముఖ్యం',
+    whyMattersSubtitle: 'వినియోగదారుల రక్షణ, న్యాయమైన వాణిజ్యం మరియు చట్టపరమైన భద్రతకు అవసరం.',
+    consumerProtectionTitle: 'వినియోగదారుల రక్షణ',
+    consumerProtectionDesc: 'ఖచ్చితమైన బరువు, పారదర్శక MRP మరియు ఫిర్యాదుల పరిష్కారానికి హామీ ఇస్తుంది.',
+    avoidFinesTitle: 'భారీ జరిమానాలు మరియు సమన్లను నివారించండి',
+    avoidFinesDesc: 'చట్టం సెక్షన్ 36 & 49 కింద ఉల్లంఘనలకు ₹1,00,000 వరకు జరిమానా, సరుకు జప్తు మరియు దర్శకులకు సమన్లు జారీ కావచ్చు.',
+    automateQATitle: 'క్షణాల్లో నాణ్యత హామీని ఆటోమేట్ చేయండి',
+    automateQADesc: '20 నిమిషాల మాన్యువల్ చెక్‌లిస్ట్‌లకు బదులుగా తక్షణ AI ధృవీకరణను ఉపయోగించి సర్టిఫైడ్ PDF నివేదికలను రూపొందించండి.',
+    eightMandatesTitle: '8 తప్పనిసరి లేబుల్ ప్రకటనలు',
+    eightMandatesSubtitle: 'భారతదేశంలో ప్రతి ప్యాక్ చేసిన వస్తువుపై నిబంధన 6(1) ప్రకారం ఇవి తప్పనిసరి.',
+    auditSpeed: 'ఆడిట్ వేగం',
+    ocrAccuracy: 'OCR ఖచ్చితత్వం',
+    pcrRules: 'PCR 2011 నిబంధనలు',
+    sampleSimulation: 'నమూనా అనుకరణ:',
+    testSimulation: 'అనుకరణ పరీక్షించండి',
+    detectedLabelText: 'గుర్తించబడిన లేబుల్ టెక్స్ట్',
+    complianceStatus: 'సమ్మతి స్థితి',
+    haveImagePrompt: 'మీ వద్ద అసలు ప్యాకేజింగ్ చిత్రం ఉందా?',
+    uploadToScanner: 'స్కానర్‌లో అప్‌లోడ్ చేయడానికి సైన్ ఇన్ చేయండి'
   },
   es: {
     appName: 'MetrologyAI',
@@ -472,7 +587,30 @@ export const translations = {
     ruleChecklist: 'Lista de Verificación de Reglas',
     pass: 'APROBADO',
     fail: 'FALLIDO',
-    review: 'REVISIÓN'
+    review: 'REVISIÓN',
+    
+    // Additional Landing Page Keys
+    openScanner: 'Abrir Escáner de Cumplimiento',
+    signInToScan: 'Inicie Sesión para Abrir el Escáner',
+    whyComplianceMatters: '¿Por qué es importante la Metrología Legal?',
+    whyMattersSubtitle: 'Esencial para la protección al consumidor, comercio justo y seguridad legal.',
+    consumerProtectionTitle: 'Protección al Consumidor',
+    consumerProtectionDesc: 'Garantiza peso exacto, precios transparentes con impuestos (MRP) y atención de reclamos.',
+    avoidFinesTitle: 'Evite Multas Graves y Citaciones',
+    avoidFinesDesc: 'Bajo los artículos 36 y 49, las violaciones conllevan multas de hasta ₹1,00,000, incautaciones y citaciones judiciales.',
+    automateQATitle: 'Automatice el Control de Calidad en Segundos',
+    automateQADesc: 'Reemplace las lentas listas de verificación manuales con verificación instantánea por IA y reportes PDF certificados.',
+    eightMandatesTitle: 'Las 8 Declaraciones Obligatorias',
+    eightMandatesSubtitle: 'Todo producto preenvasado en India debe declarar esto bajo la Regla 6(1) de PCR 2011.',
+    auditSpeed: 'Velocidad de Auditoría',
+    ocrAccuracy: 'Precisión OCR',
+    pcrRules: 'Reglas PCR 2011',
+    sampleSimulation: 'Simulación de Muestra:',
+    testSimulation: 'Probar Simulación',
+    detectedLabelText: 'Texto de Etiqueta Detectado',
+    complianceStatus: 'Estado de Cumplimiento',
+    haveImagePrompt: '¿Tiene una imagen del envase real?',
+    uploadToScanner: 'Inicie sesión para subir al escáner'
   }
 }
 
